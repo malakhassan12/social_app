@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserPlus, X } from "lucide-react";
 
+export const dynamic = "force-dynamic";
 const RightPanel = () => {
   return (
     <div className="space-y-3">

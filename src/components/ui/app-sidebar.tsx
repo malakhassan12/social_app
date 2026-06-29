@@ -80,7 +80,7 @@ export function AppSidebar() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
-                      className="h-10 px-3"
+                      className="h-10 px-3 mb-1.5"
                     >
                       <Link
                         href={item.path}

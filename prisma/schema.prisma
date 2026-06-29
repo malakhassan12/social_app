@@ -1,15 +1,265 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
 }
 
-
-// prisma/schema.prisma
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
+}
+
+// ========================================
+// 🔹 USER MODEL
+// ========================================
+
+model User {
+  id         String    @id @default(cuid())
+  email      String    @unique
+  name       String
+  country    String
+  bio        String?
+  image      String?
+  website    String?
+  password   String
+  phone      String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  posts      Post[]
+  comments   Comment[]
+  followers  Follower[] @relation("FollowingUser")  // اللي متابعني
+  following  Follower[] @relation("FollowerUser")   // اللي أنا متابعهم
+  receivedNotifications Notification[] @relation("Receiver")
+  createdNotifications Notification[] @relation("Creator")
+
+  sharesFrom Share[] @relation("shareFrom")
+  sharesTo Share[] @relation("shareTo")
+
+  conversations ConversationUser[]
+  messages Message[]
+  postLikes      PostLike[]
+  commentLikes CommentLike[]
+
+}
+
+// ========================================
+// 🔹 FOLLOWER MODEL (Many-to-Many Self)
+// ========================================
+
+model Follower {
+  id            String   @id @default(cuid())
+
+  followerId    String
+  followingId   String
+
+  status        FollowStatus @default(PENDING)
+
+  createdAt     DateTime @default(now())
+
+
+  follower      User @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
+  following     User @relation("FollowingUser", fields: [followingId], references: [id], onDelete: Cascade)
+
+
+  @@unique([followerId, followingId])
+  @@index([followingId])
+  @@index([followerId])
+}
+
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// ========================================
+// 🔹 LIKE MODEL 
+// ========================================
+model PostLike {
+  id String @id @default(cuid())
+
+  userId String
+  postId String
+
+  user User @relation( fields: [userId], references: [id], onDelete: Cascade)
+
+  post Post @relation( fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, postId])
+  @@index([postId])
+}
+
+
+
+model CommentLike {
+  id String @id @default(cuid())
+
+  userId String
+  commentId String
+
+  user User @relation( fields: [userId], references: [id], onDelete: Cascade)
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, commentId])
+  @@index([commentId])
+}
+// ========================================
+// 🔹 POST MODEL
+// ========================================
+model Post {
+  id         String    @id @default(cuid())
+  desc       String    @db.Text
+  image      String[]
+  video      String[] 
+  isPrivate  Boolean   @default(false)
+  likes      PostLike[]
+  authorId   String   
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  // Relations
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments   Comment[]
+  notifications Notification[]
+  shares Share[]
+
+
+
+  @@index([authorId])
+}
+
+// ========================================
+// 🔹 Share MODEL
+// ========================================
+model Share {
+  id String @id @default(cuid())
+
+  shareFromId String
+  shareToId String
+
+  postId String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  shareFrom User @relation("shareFrom",fields: [shareFromId],references: [id],onDelete: Cascade)
+
+  shareTo User @relation("shareTo",fields: [shareToId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+
+  @@index([shareFromId])
+  @@index([shareToId])
+}
+
+// ========================================
+// 🔹 COMMENT MODEL
+// ========================================
+model Comment {
+  id         String    @id @default(cuid())
+  content    String    @db.Text
+  likes      CommentLike[]
+  postId     String    
+  authorId   String  
+  createdAt  DateTime  @default(now())
+
+  // Relations
+
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+}
+
+// ========================================
+// 🔹 Notification MODEL
+// ========================================
+
+
+enum NotificationType{
+  LIKE
+  COMMENT
+  FOLLOW
+  PUBLISHED
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  title      String
+  content    String
+  notificationType NotificationType
+  userId     String   
+  creatorId  String
+  postId     String?
+  createdAt  DateTime  @default(now())
+  read       Boolean   @default(false)  
+
+  // Relations
+  user       User      @relation("Receiver",fields: [userId], references: [id], onDelete: Cascade)
+  creator    User      @relation("Creator",fields: [creatorId], references: [id], onDelete: Cascade)
+  post       Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+
+}
+
+// ========================================
+// 🔹 CONVERSATION MODEL (Container of the messages and users)
+// ========================================
+model Conversation {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  users      ConversationUser[]
+  messages   Message[]
+}
+
+// ========================================
+// 🔹 CONVERSATION USER 
+// ========================================
+
+model ConversationUser {
+  id              String   @id @default(cuid())
+  conversationId  String
+  userId          String
+  joinedAt        DateTime @default(now())
+
+  // Relations
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // User can't enter the same conversion more than one 
+  @@unique([conversationId, userId]) 
+
+  @@index([userId])
+}
+
+// ========================================
+// 🔹 MESSAGE MODEL 
+// ========================================
+
+model Message {
+  id              String    @id @default(cuid())
+  content         String    @db.Text
+  senderId        String
+  conversationId  String
+  read            Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId,createdAt])
 }

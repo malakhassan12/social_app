@@ -23,11 +23,6 @@ export const sidebarData: SIDEBAR[] = [
     icon: "Mail",
   },
   {
-    title: "Groups",
-    path: "/groups",
-    icon: "Users",
-  },
-  {
     title: "Videos",
     path: "/videos",
     icon: "Video",

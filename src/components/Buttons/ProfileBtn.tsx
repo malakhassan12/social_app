@@ -1,3 +1,4 @@
+"use client";
 import {
   Popover,
   PopoverContent,
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { LogOut, Settings, User } from "lucide-react";
+import { authLogout } from "@/actions/auth/authLogout";
 
 const ProfileBtn = () => {
   return (
@@ -54,6 +56,7 @@ const ProfileBtn = () => {
           variant="ghost"
           className="w-full justify-start gap-2 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
           size="sm"
+          onClick={() => authLogout()}
         >
           <LogOut className="h-4 w-4" />
           Logout

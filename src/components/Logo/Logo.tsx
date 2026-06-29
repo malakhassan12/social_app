@@ -4,7 +4,7 @@ const Logo = () => {
   return (
     <Link href="/" className="group inline-flex flex-col items-start">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold shadow-md transition-transform duration-300 group-hover:scale-105">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-300 text-primary-foreground font-bold shadow-md transition-transform duration-300 group-hover:scale-105">
           C
         </div>
 
