@@ -6,7 +6,11 @@ import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
 import AcceptFollowBtn from "./AcceptFollowBtn";
 import RejectFollowBtn from "./RejectFollowBtn";
 
-const Requests = async () => {
+const Requests = async ({
+  rightPanel = false,
+}: {
+  rightPanel?: boolean;
+}) => {
   const userId = (await getUserId()) as string;
 
   const requests = await prisma.follower.findMany({
@@ -52,7 +56,7 @@ const Requests = async () => {
           followers.map((follow) => (
             <div
               key={follow.id}
-              className="flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+              className={" flex-wrap flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"}
             >
               <div className="flex items-center gap-3">
                 <ProfileAvatar

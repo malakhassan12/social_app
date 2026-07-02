@@ -1,13 +1,12 @@
 "use server";
 
+import { NotificationType } from "@/generated/prisma/enums";
 import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { LikeResponse } from "@/types/like.Types";
+import { NOTIREQUEST } from "@/types/notification.Types";
 import { revalidatePath } from "next/cache";
-
-
-
-
+import { createNotification } from "../notification/createNotification";
 
 const createLikeOnPost = async (postId: string) => {
   const userId = await getUserId();
@@ -42,7 +41,6 @@ const createLikeOnPost = async (postId: string) => {
       },
     });
 
-
     res = {
       success: true,
       liked: false,
@@ -58,12 +56,29 @@ const createLikeOnPost = async (postId: string) => {
       success: true,
       liked: true,
     };
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    if (post?.authorId) {
+      const notification: NOTIREQUEST = {
+        title: "New Like",
+        content: `liked your post`,
+        creatorId: userId, // Iam make the action
+        userId: post.authorId, // the notification sent to the specific user
+        notificationType: NotificationType.LIKE,
+      };
+      createNotification(notification);
+    }
   }
 
- 
-
   revalidatePath(`/`);
-
 
   return res;
 };

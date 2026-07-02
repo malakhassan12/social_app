@@ -4,8 +4,11 @@ import PostCard from "./Post";
 async function PostsSection() {
   const res = await fetch(`${process.env.API_V1}/api/post`);
 
-  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(`Request failed: ${res.status}`);
+  }
 
+  const data = await res.json();
   const posts = data?.posts;
 
   return (

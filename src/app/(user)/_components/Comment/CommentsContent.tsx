@@ -1,4 +1,3 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { getUserId } from "@/helper/getUserId";
 import { Comment } from "@/types/comment.Types";
@@ -6,6 +5,8 @@ import { getTime } from "@/utils/getTime";
 import { MoreHorizontal } from "lucide-react";
 import LikeCommentBtn from "../Like/LikeCommentBtn";
 import { getLikeComment } from "@/helper/getLikeComment";
+import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
+import CurdCommentBtn from "./CurdCommentBtn";
 
 const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
   const userId = await getUserId();
@@ -25,11 +26,10 @@ const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
               className="flex items-start gap-2 sm:gap-3 group"
             >
               {/* Avatar */}
-              <Avatar className="h-7 w-7 sm:h-8 sm:w-8 flex-shrink-0 mt-0.5">
-                <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] sm:text-xs font-medium">
-                  {comment.author?.name?.charAt(0).toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
+              <ProfileAvatar
+                name={comment.author?.name}
+                image={comment?.author?.image}
+              />
 
               {/* Content */}
               <div className="flex-1 min-w-0">
@@ -57,13 +57,7 @@ const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
 
               {/* Actions - More button */}
               {userId == comment?.author?.id && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 sm:h-8 sm:w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
+               <CurdCommentBtn comment={comment}/>
               )}
             </div>
           );

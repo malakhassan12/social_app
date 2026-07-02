@@ -1,5 +1,3 @@
-"use client";
-// components/Sidebar/AppSidebar.tsx
 import {
   Sidebar,
   SidebarContent,
@@ -7,47 +5,13 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import {
-  Home,
-  Compass,
-  Bell,
-  Mail,
-  Users,
-  Video,
-  User,
-  Settings,
-} from "lucide-react";
 import NavBtns from "../Buttons/NavBtns";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import { sidebarData } from "@/constants/SideBar.constants";
 import ProfileCard from "../Cards/ProfileCard";
 import { Separator } from "./separator";
-
-// Icon mapping object
-const iconMap = {
-  Home: Home,
-  Compass: Compass,
-  Bell: Bell,
-  Mail: Mail,
-  Users: Users,
-  Video: Video,
-  User: User,
-  Settings: Settings,
-} as const;
-
-// Helper to get Lucide icon component by name
-const getIcon = (iconName: string) => {
-  const Icon = iconMap[iconName as keyof typeof iconMap];
-  return Icon ? <Icon className="h-5 w-5" /> : null;
-};
+import Menusidebar from "./menu-sidebar";
 
 export function AppSidebar() {
-  const pathname = usePathname();
 
   return (
     <Sidebar>
@@ -72,30 +36,7 @@ export function AppSidebar() {
             Main Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {sidebarData.map((item) => {
-                const isActive = pathname === item.path;
-                return (
-                  <SidebarMenuItem key={item.path}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      className="h-10 px-3 mb-1.5"
-                    >
-                      <Link
-                        href={item.path}
-                        className="flex items-center gap-3"
-                      >
-                        {getIcon(item.icon)}
-                        <span className="text-sm font-medium">
-                          {item.title}
-                        </span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
+            <Menusidebar/>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>

@@ -4,6 +4,9 @@ import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { LikeResponse } from "@/types/like.Types";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "../notification/createNotification";
+import { NotificationType } from "@/generated/prisma/enums";
+import { NOTIREQUEST } from "@/types/notification.Types";
 
 const createLikeOnComment = async (commentId: string) => {
   const userId = await getUserId();
@@ -38,13 +41,10 @@ const createLikeOnComment = async (commentId: string) => {
       },
     });
 
-
     res = {
       success: true,
       liked: false,
     };
-
-
   } else {
     await prisma.commentLike.create({
       data: {
@@ -56,11 +56,29 @@ const createLikeOnComment = async (commentId: string) => {
       success: true,
       liked: true,
     };
+    const comment = await prisma.comment.findUnique({
+      where: {
+        id: commentId,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    if (comment?.authorId) {
+      const notification: NOTIREQUEST = {
+        title: "New Like",
+        content: `Someone liked your comment`,
+        creatorId: userId,
+        userId: comment.authorId,
+        notificationType: NotificationType.LIKE,
+      };
+
+      await createNotification(notification);
+    }
   }
 
- 
   revalidatePath("/");
-
 
   return res;
 };

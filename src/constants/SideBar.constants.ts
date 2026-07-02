@@ -22,19 +22,19 @@ export const sidebarData: SIDEBAR[] = [
     path: "/messages",
     icon: "Mail",
   },
-  {
-    title: "Videos",
-    path: "/videos",
-    icon: "Video",
-  },
+  // {
+  //   title: "Videos",
+  //   path: "/videos",
+  //   icon: "Video",
+  // },
   {
     title: "Profile",
     path: "/profile",
     icon: "User",
   },
-  {
-    title: "Settings",
-    path: "/settings",
-    icon: "Settings",
-  },
+  // {
+  //   title: "Settings",
+  //   path: "/settings",
+  //   icon: "Settings",
+  // },
 ];

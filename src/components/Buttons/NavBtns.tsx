@@ -1,26 +1,34 @@
+import { getUserId } from "@/helper/getUserId";
 import { ModeToggle } from "./ModeToggleBtn";
-import { BookmarkIcon } from "lucide-react";
 import NotificationsBtn from "./NotificationsBtn";
 import ProfileBtn from "./ProfileBtn";
-import { Toggle } from "../ui/toggle";
+import prisma from "@/lib/prisma";
+import { User } from "@/types/profile.Types";
 
-const NavBtns = () => {
+const NavBtns = async () => {
+  const userId = (await getUserId()) as string;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      image: true,
+      name: true,
+      email: true,
+      country: true,
+      bio: true,
+    },
+  });
+
   return (
     <>
       {/* Mode Toggle (Dark/Light) */}
       <ModeToggle />
 
-      {/* Bookmark Toggle Button */}
-      <Toggle aria-label="Toggle bookmark" size="sm" variant="outline">
-        <BookmarkIcon className="h-4 w-4 group-data-[state=on]/toggle:fill-foreground" />
-        <span className="sr-only">Bookmark</span>
-      </Toggle>
-
       {/* Notifications Button */}
       <NotificationsBtn />
 
       {/* Profile Popover (Settings, Logout, etc.) */}
-      <ProfileBtn />
+      <ProfileBtn user={user as unknown as User} />
     </>
   );
 };

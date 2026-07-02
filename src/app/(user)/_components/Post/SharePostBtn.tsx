@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Post } from "@/types/post.Types";
 import { ShareResponse } from "@/types/share.Types";
 import { Share2 } from "lucide-react";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -40,7 +41,8 @@ const SharePostBtn = ({
       toast.success(res.shared ? "Post shared successfully" : "Share removed", {
         position: "top-center",
       });
-    } catch {
+    } catch(error) {
+      console.log(error);
       toast.error("Failed to share post", {
         position: "top-center",
       });

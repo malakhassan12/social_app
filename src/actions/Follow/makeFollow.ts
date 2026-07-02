@@ -3,6 +3,9 @@
 import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "../notification/createNotification";
+import { NOTIREQUEST } from "@/types/notification.Types";
+import { NotificationType } from "@/generated/prisma/enums";
 
 const makeFollow = async (followingId: string) => {
   const userId = await getUserId();
@@ -43,23 +46,23 @@ const makeFollow = async (followingId: string) => {
   });
 
   // Already friends
-  if (existing?.status === "ACCEPTED") {
-    await prisma.follower.delete({
-      where: {
-        id: existing.id,
-      },
-    });
+  // if (existing?.status === "ACCEPTED") {
+  //   await prisma.follower.delete({
+  //     where: {
+  //       id: existing.id,
+  //     },
+  //   });
 
-    revalidatePath("/explore");
+  //   revalidatePath("/explore");
 
-    return {
-      success: true,
-      followed: false,
-    };
-  }
+  //   return {
+  //     success: true,
+  //     followed: false,
+  //   };
+  // }
 
   // Request exists
-  if (existing?.status === "PENDING") {
+  if (existing?.status === "PENDING" || existing?.status === "ACCEPTED") {
     // I am the sender
     if (existing.followerId === userId) {
       await prisma.follower.delete({
@@ -79,13 +82,13 @@ const makeFollow = async (followingId: string) => {
       };
     }
 
-    // I am the receiver
-    return {
-      success: false,
-      error: {
-        message: "This user already sent you a request",
-      },
-    };
+    // // I am the receiver
+    // return {
+    //   success: false,
+    //   error: {
+    //     message: "This user already sent you a request",
+    //   },
+    // };
   }
 
   // No relation exists
@@ -96,6 +99,15 @@ const makeFollow = async (followingId: string) => {
       status: "PENDING",
     },
   });
+
+  const notification: NOTIREQUEST = {
+    title: "New Follower",
+    content: `want follow you`,
+    creatorId: userId, // Iam make the action
+    userId: followingId, //  the notification sended to the specific user
+    notificationType: NotificationType.FOLLOW,
+  };
+  createNotification(notification);
 
   revalidatePath("/explore");
 

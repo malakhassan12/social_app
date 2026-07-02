@@ -1,44 +1,84 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card,  } from "@/components/ui/card";
+import ProfileAvatar from "../Avatar/ProfileAvatar";
+import { MapPin, Mail, Users, FileText } from "lucide-react";
+import prisma from "@/lib/prisma";
+import { getUserId } from "@/helper/getUserId";
 
-const ProfileCard = () => {
+const ProfileCard = async () => {
+  const userId = (await getUserId()) as string;
+
+  const [user, followers, followings, posts] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        image: true,
+        name: true,
+        email: true,
+        country: true,
+        bio: true,
+      },
+    }),
+    prisma.follower.count({ where: { followingId: userId } }),
+    prisma.follower.count({ where: { followerId: userId } }),
+    prisma.post.count({ where: { authorId: userId } }),
+  ]);
+
   return (
-    <Card className="w-full max-w-sm shadow-lg">
-      {/* Profile Header */}
-      <CardHeader className="flex flex-row items-center gap-4 pb-2">
-        <Avatar className="h-16 w-16">
-          <AvatarImage src="https://github.com/shadcn.png" alt="Jakob Botosh" />
-          <AvatarFallback>JB</AvatarFallback>
-        </Avatar>
-        
-        <div className="flex flex-col">
-          <h2 className="text-lg font-semibold leading-none">Jakob Botosh</h2>
-          <p className="text-sm text-muted-foreground">@jakobbtsh</p>
+    <Card className="w-full max-w-xs mx-auto shadow-md border border-gray-200 dark:border-gray-800 p-4">
+      {/* Profile Info */}
+      <div className="flex items-center gap-3">
+        <ProfileAvatar
+          name={user?.name}
+          image={user?.image}
+        />
+        <div className="flex-1 min-w-0">
+          <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+            {user?.name || "User"}
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-0.5">
+            <Mail className="h-3 w-3 shrink-0" />
+            {user?.email}
+          </p>
+          {user?.country && (
+            <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-0.5">
+              <MapPin className="h-3 w-3 shrink-0" />
+              {user.country}
+            </p>
+          )}
         </div>
-      </CardHeader>
+      </div>
 
-      {/* Stats Section */}
-      <CardContent className="pb-2">
-        <div className="flex justify-around py-2">
-          <div className="text-center">
-            <p className="text-xl font-bold">2.3k</p>
-            <p className="text-xs text-muted-foreground">Follower</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">235</p>
-            <p className="text-xs text-muted-foreground">Following</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xl font-bold">80</p>
-            <p className="text-xs text-muted-foreground">Post</p>
-          </div>
+      {/* Bio */}
+      {user?.bio && (
+        <p className="text-xs text-gray-600 dark:text-gray-400 mt-2 line-clamp-1">
+          {user.bio}
+        </p>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-1 mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+        <div className="text-center">
+          <p className="text-sm font-bold text-gray-900 dark:text-white">{posts}</p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center justify-center gap-0.5">
+            <FileText className="h-2.5 w-2.5" />
+            Posts
+          </p>
         </div>
-      </CardContent>
-
+        <div className="text-center border-l border-r border-gray-100 dark:border-gray-800">
+          <p className="text-sm font-bold text-gray-900 dark:text-white">{followers}</p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center justify-center gap-0.5">
+            <Users className="h-2.5 w-2.5" />
+            Followers
+          </p>
+        </div>
+        <div className="text-center">
+          <p className="text-sm font-bold text-gray-900 dark:text-white">{followings}</p>
+          <p className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center justify-center gap-0.5">
+            <Users className="h-2.5 w-2.5" />
+            Following
+          </p>
+        </div>
+      </div>
     </Card>
   );
 };

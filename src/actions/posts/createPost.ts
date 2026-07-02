@@ -1,11 +1,15 @@
 "use server";
 
+import { NotificationType } from "@/generated/prisma/enums";
 import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
 import { FormState } from "@/types/form.Types";
+import { NOTIREQUEST } from "@/types/notification.Types";
 import { validateCreatePost } from "@/utils/postValidation";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "../notification/createNotification";
+import { redirect } from "next/navigation";
 
 export async function createPost(
   prevState: FormState,
@@ -53,7 +57,7 @@ export async function createPost(
     videos.map((file) => uploadToCloudinary(file)),
   );
 
-  await prisma.post.create({
+  const post = await prisma.post.create({
     data: {
       desc,
 
@@ -64,6 +68,18 @@ export async function createPost(
       authorId: userId,
     },
   });
+
+  if (post?.authorId) {
+    const notification: NOTIREQUEST = {
+      title: "New Post",
+      content: `published a post`,
+      creatorId: userId,
+      userId: userId,
+      notificationType: NotificationType.PUBLISHED,
+    };
+
+    await createNotification(notification);
+  }
 
   revalidatePath(`/api/post`);
 

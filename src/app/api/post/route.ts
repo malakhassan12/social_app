@@ -5,6 +5,9 @@ export const revalidate = 60;
 export async function GET() {
   try {
     const posts = await prisma.post.findMany({
+      where: {
+        isPrivate: false,
+      },
       orderBy: {
         createdAt: "desc",
       },

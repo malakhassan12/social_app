@@ -1,34 +1,32 @@
+"use client";
 import CreatePostBtn from "../Buttons/CreatePostBtn";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Image, Smile, Video, Send } from "lucide-react";
+import { Image, Smile, Video, Send, Loader2 } from "lucide-react";
 import { Textarea } from "../ui/textarea";
 import { createPost } from "@/actions/posts/createPost";
 import { toast } from "sonner";
+import { useTransition } from "react";
 
 const CreatePostBar = () => {
+  const [pending, startTransition] = useTransition();
+
+  const submit = (formData: FormData) => {
+    startTransition(async () => {
+      const res = await createPost({}, formData);
+
+      if (res.errors?.message) {
+        toast.error(res.errors.message);
+        return;
+      }
+
+      toast.success("Post created successfully!");
+    });
+  };
   return (
     <Card className="border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-3 sm:p-4">
-        <form
-          action={async (values) => {
-            "use server";
-            const res = await createPost({}, values);
-            const message = res.errors?.message;
-
-            /*I will solve it !!! */
-            if (message) {
-              toast.error(message, { position: "top-center" });
-              return;
-            }
-
-            if (res.success) {
-              toast.success("Post created successfully!", {
-                position: "top-center",
-              });
-            }
-          }}
-        >
+        <form action={submit}>
           {/* Avatar + Input Section */}
           <div className="flex items-start sm:items-center gap-2 sm:gap-3">
             <Textarea
@@ -87,10 +85,20 @@ const CreatePostBar = () => {
               <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   type="submit"
-                  className="inline-flex items-center rounded-full px-4 sm:px-6 py-1.5 sm:py-2 bg-green-400 hover:bg-green-500 text-white font-medium text-sm sm:text-base ="
+                  disabled={pending}
+                  className="inline-flex items-center rounded-full px-4 sm:px-6 py-1.5 sm:py-2 bg-green-400 hover:bg-green-500 disabled:bg-green-300 disabled:cursor-not-allowed text-white font-medium text-sm sm:text-base transition-colors"
                 >
-                  <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Post
+                  {pending ? (
+                    <>
+                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
+                      Posting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      Post
+                    </>
+                  )}
                 </Button>
               </div>
             </div>

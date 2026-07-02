@@ -3,13 +3,30 @@ import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useFilesUpload } from "@/lib/upload/post/uploadFiles";
-import { Image, Video, Upload } from "lucide-react";
+import { Post } from "@/types/post.Types";
+import { Image as ImageIcon, Video, Upload } from "lucide-react";
 
-const CreatePostTabs = () => {
-  const { previews, imageRef , videoRef, handleFilesChange, removeFile } =
-    useFilesUpload();
+const CreatePostTabs = ({ post }: { post?: Post }) => {
+  const { previews, imageRef, videoRef, handleFilesChange, removeFile } =
+    useFilesUpload(post);
+
+  console.log(post);
+
+  console.log(previews);
+  const remainingOldImages = previews
+    .filter((p) => !p.url.startsWith("blob:") && p.type === "image")
+    .map((p) => p.url);
+  const remainingOldVideos = previews
+    .filter((p) => !p.url.startsWith("blob:") && p.type === "video")
+    .map((p) => p.url);
   return (
     <>
+      {remainingOldImages.map((url) => (
+        <input key={url} type="hidden" name="oldImages" value={url} />
+      ))}
+      {remainingOldVideos.map((url) => (
+        <input key={url} type="hidden" name="oldVideos" value={url} />
+      ))}
       {/* Tabs */}
       <div className="flex flex-wrap gap-3 mt-3">
         <PreviewsFiles previews={previews} removeFile={removeFile} />
@@ -18,7 +35,7 @@ const CreatePostTabs = () => {
         <TabsList className="grid grid-cols-3 w-full">
           <TabsTrigger value="text">✏️ Text</TabsTrigger>
           <TabsTrigger value="image" className="flex items-center gap-1">
-            <Image className="h-3.5 w-3.5" /> Image
+            <ImageIcon className="h-3.5 w-3.5" /> Image
           </TabsTrigger>
           <TabsTrigger value="video" className="flex items-center gap-1">
             <Video className="h-3.5 w-3.5" /> Video

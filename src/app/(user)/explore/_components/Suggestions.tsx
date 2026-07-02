@@ -6,7 +6,11 @@ import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
 import AddFriendBtn from "./AddFriendBtn";
 import { getFollow } from "@/helper/getFollow";
 
-const Suggestions = async () => {
+const Suggestions = async ({
+  rightPanel = false,
+}: {
+  rightPanel?: boolean;
+}) => {
   const userId = (await getUserId()) as string;
 
   const user = await prisma.user.findUnique({
@@ -74,7 +78,13 @@ const Suggestions = async () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div
+            className={
+              rightPanel
+                ? "grid grid-cols-1 gap-3"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+            }
+          >
             {suggestions.map(async (suggestion) => {
               const followStatus = await getFollow(suggestion?.id);
               return (
