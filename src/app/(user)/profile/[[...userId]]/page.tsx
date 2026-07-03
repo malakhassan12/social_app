@@ -1,15 +1,52 @@
 import prisma from "@/lib/prisma";
-import { getUserId } from "@/helper/getUserId";
 import { Post } from "@/types/post.Types";
 import { FollowStatus } from "@/generated/prisma/enums";
-import ShowFollow from "./_components/ShowFollow";
+import ShowFollow from "../_components/ShowFollow";
 import { Follower, User } from "@/types/profile.Types";
 import { Share } from "@/types/share.Types";
-import PostCard from "../_components/Post/Post";
-import ShareCard from "./_components/ShareCard";
+import PostCard from "../../_components/Post/Post";
+import ShareCard from "../_components/ShareCard";
+import { FC } from "react";
+import { getUserId } from "@/helper/getUserId";
 
-const Page = async () => {
-  const userId = (await getUserId()) as string;
+import { Metadata } from "next";
+
+type Props = {
+  params: Promise<{
+    userId: string;
+  }>;
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const routeParams = await params;
+
+  const userId = routeParams.userId
+    ? routeParams.userId[0]
+    : ((await getUserId()) as string);
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      name: true,
+    },
+  });
+
+  return {
+    title: user?.name ?? "Profile",
+  };
+}
+const Page: FC<{
+  params: Promise<{
+    userId: string;
+  }>;
+}> = async ({ params }) => {
+  const routeParams = await params;
+
+  const userId = routeParams.userId
+    ? routeParams.userId[0]
+    : ((await getUserId()) as string);
 
   const [user, followers, followings, posts, shares] = await Promise.all([
     prisma.user.findUnique({
@@ -55,7 +92,7 @@ const Page = async () => {
         likes: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     }),
     prisma.share.findMany({
@@ -87,15 +124,15 @@ const Page = async () => {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     }),
   ]);
 
   // Combine posts and shares into a single feed
   const feedItems = [
-    ...posts.map((post) => ({ type: 'post' as const, data: post })),
-    ...shares.map((share) => ({ type: 'share' as const, data: share })),
+    ...posts.map((post) => ({ type: "post" as const, data: post })),
+    ...shares.map((share) => ({ type: "share" as const, data: share })),
   ].sort((a, b) => {
     const dateA = new Date(a.data.createdAt).getTime();
     const dateB = new Date(b.data.createdAt).getTime();
@@ -119,16 +156,26 @@ const Page = async () => {
             Your Activity
           </h3>
           <span className="text-sm text-gray-400 dark:text-gray-500">
-            {feedItems.length} {feedItems.length === 1 ? 'item' : 'items'}
+            {feedItems.length} {feedItems.length === 1 ? "item" : "items"}
           </span>
         </div>
-        
+
         <div className="space-y-4">
           {feedItems.map((item) => {
-            if (item.type === 'post') {
-              return <PostCard key={item.data.id} post={item.data as unknown as Post} />;
+            if (item.type === "post") {
+              return (
+                <PostCard
+                  key={item.data.id}
+                  post={item.data as unknown as Post}
+                />
+              );
             } else {
-              return <ShareCard key={item.data.id} share={item.data as unknown as Share} />;
+              return (
+                <ShareCard
+                  key={item.data.id}
+                  share={item.data as unknown as Share}
+                />
+              );
             }
           })}
         </div>

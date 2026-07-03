@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 export default async function CreatePostModal() {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <Card className="bg-white dark:bg-[#1a1a2e] rounded-2xl w-full max-w-[600px] max-h-[95vh] shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+      <Card className="bg-white dark:bg-[#1a1a2e] rounded-2xl w-full max-w-150 max-h-[95vh] shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden">
         {/* Header - Fixed */}
         <div className="flex items-center justify-between p-5 pb-3  border-gray-100 dark:border-gray-800 bg-white dark:bg-[#1a1a2e] sticky top-0 z-10">
           <div className="flex items-center gap-3">
@@ -37,7 +37,7 @@ export default async function CreatePostModal() {
         </div>
 
         {/* Scrollable Content x */}
-        <ScrollArea className="h-[400px] w-full rounded-md">
+        <ScrollArea className="h-100 w-full rounded-md">
           <div className="p-5 pt-3">
             <CreatePostForm/>
           </div>

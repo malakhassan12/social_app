@@ -1,25 +1,21 @@
-import SocialBtns from "./SocialBtns";
 import CommentInput from "../Comment/CommentInput";
 import { FC } from "react";
 import { Post } from "@/types/post.Types";
+import SocialBtns from "./SocialBtns";
 
 const PostFooter: FC<{
   post: Post;
 }> = ({ post }) => {
   return (
-    <div className="space-y-3 ">
-      {/* Actions with Comment Input Between */}
-      <div className="flex flex-wrap  justify-center items-center gap-2">
-        {/* Left Buttons */}
+    <div className="space-y-3">
+      {/* Comment Input - Full width */}
+      <div className="w-full">
+        <CommentInput postId={post.id} />
+      </div>
 
-        {/* Comment Input - Between Buttons */}
-        <div className="flex-1 min-w-25 relative">
-          <CommentInput postId={post.id} />
-        </div>
-
-        <div className="flex items-center gap-0.5 sm:gap-1">
-          <SocialBtns post={post} />
-        </div>
+      {/* Social Buttons - Centered */}
+      <div className="flex items-center justify-center sm:justify-end gap-1">
+        <SocialBtns post={post} />
       </div>
     </div>
   );

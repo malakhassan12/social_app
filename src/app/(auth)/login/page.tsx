@@ -2,7 +2,13 @@ import Link from "next/link";
 import LoginForm from "./_components/LoginForm";
 
 import "../FormStyles.css";
+import { Metadata } from "next";
 
+export const metadata: Metadata = {
+  title: {
+    absolute: "Login Page for Circle Website",
+  },
+};
 
 const GoogleIcon = () => (
   <svg
@@ -28,8 +34,6 @@ const GoogleIcon = () => (
     />
   </svg>
 );
-
-
 
 const LoginPage = () => {
   return (

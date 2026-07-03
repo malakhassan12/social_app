@@ -7,8 +7,6 @@ import SocialBtns from "../../_components/Post/SocialBtns";
 import CommentsContent from "../../_components/Comment/CommentsContent";
 import CommentInput from "../../_components/Comment/CommentInput";
 
-export const dynamic = "force-dynamic";
-
 const PostModal = async ({
   params,
 }: {
@@ -17,12 +15,27 @@ const PostModal = async ({
   const { postId } = await params;
 
   const [postData, commentsData] = await Promise.all([
-    fetch(`${process.env.API_V1}/api/post/${postId}`).then((res) => res.json()),
-    fetch(`${process.env.API_V1}/api/comment/${postId}`).then((res) =>
-      res.json(),
-    ),
+    fetch(`${process.env.API_V1}/api/post/${postId}`).then(async (res) => {
+      if (!res.ok) {
+        const error = await res
+          .json()
+          .catch(() => ({ message: "Failed to fetch post" }));
+        throw new Error(error.message || `Failed to fetch post: ${res.status}`);
+      }
+      return res.json();
+    }),
+    fetch(`${process.env.API_V1}/api/comment/${postId}`).then(async (res) => {
+      if (!res.ok) {
+        const error = await res
+          .json()
+          .catch(() => ({ message: "Failed to fetch comments" }));
+        throw new Error(
+          error.message || `Failed to fetch comments: ${res.status}`,
+        );
+      }
+      return res.json();
+    }),
   ]);
-
   const post = postData?.post;
   const comments = commentsData?.comments || [];
   const commentCount = comments.length;
@@ -31,7 +44,7 @@ const PostModal = async ({
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <Card className="bg-white dark:bg-[#1a1a2e] rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
           <PostHeader post={post} />
           <Link
             href="/"

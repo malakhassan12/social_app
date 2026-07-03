@@ -1,5 +1,12 @@
 import SignupForm from "./_components/SignupForm";
 import "../FormStyles.css";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Sign-up Page for Circle Website",
+  },
+};
 
 const Signup = () => {
   return (

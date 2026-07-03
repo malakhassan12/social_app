@@ -8,6 +8,7 @@ export function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
+  console.log(token , " ", pathname)
 
   if (!token && !pathname.startsWith("/login") && !pathname.startsWith("/sign-up")) {
     return NextResponse.redirect(

@@ -1,12 +1,9 @@
 // components/RightPanel.tsx
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserPlus, X } from "lucide-react";
+import { Suspense } from "react";
 import Requests from "../explore/_components/Requests";
 import Suggestions from "../explore/_components/Suggestions";
+import SuggestionsSkeleton from "@/components/Skelton/SuggestionsSkeleton";
 
-export const dynamic = "force-dynamic";
 const RightPanel = () => {
   return (
     <div className="space-y-3">
@@ -15,7 +12,9 @@ const RightPanel = () => {
 
       {/* Suggested Friends */}
 
-      <Suggestions rightPanel={true} />
+      <Suspense fallback={<SuggestionsSkeleton />}>
+        <Suggestions rightPanel={true} />
+      </Suspense>
     </div>
   );
 };

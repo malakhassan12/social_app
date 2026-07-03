@@ -10,13 +10,13 @@ export async function authLogout() {
 
   const userid = await getUserId();
 
-  const sessionId = cookieStore.get("session")?.value;
+  const sessionId = cookieStore.get("token")?.value;
 
   if (sessionId) {
     await deleteSession(sessionId);
   }
 
-  cookieStore.delete("session");
+  cookieStore.delete("token");
 
   console.log("noon");
   console.log(userid);

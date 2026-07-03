@@ -1,6 +1,7 @@
 // data/sidebar-data.ts
 import { SIDEBAR } from "@/types/SideBar.types";
 
+
 export const sidebarData: SIDEBAR[] = [
   {
     title: "Home",

@@ -2,6 +2,8 @@ import { Post } from "@/types/post.Types";
 import PostCard from "./Post";
 
 async function PostsSection() {
+
+
   const res = await fetch(`${process.env.API_V1}/api/post`);
 
   if (!res.ok) {

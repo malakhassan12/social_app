@@ -5,7 +5,7 @@ import Logo from "../Logo/Logo";
 import { footerData, socialLinks } from "@/constants/Footer.constants";
 
 export function SimpleFooter() {
-  const currentYear = new Date().getFullYear();
+  const currentYear = "2026"
 
   return (
     <footer className="w-full border-t bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">

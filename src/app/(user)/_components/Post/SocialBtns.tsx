@@ -11,7 +11,7 @@ const SocialBtns = async ({
   showComment = true,
 }: {
   post: Post;
-  showComment: boolean;
+  showComment?: boolean;
 }) => {
   const shared = await getShare(post?.id);
 

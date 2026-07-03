@@ -1,7 +1,6 @@
 import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 
-export const dynamic = "force-dynamic";
 
 
 

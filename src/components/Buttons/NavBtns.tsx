@@ -8,16 +8,24 @@ import { User } from "@/types/profile.Types";
 const NavBtns = async () => {
   const userId = (await getUserId()) as string;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      image: true,
-      name: true,
-      email: true,
-      country: true,
-      bio: true,
-    },
-  });
+  const getUser = async () => {
+    "use cache";
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        image: true,
+        name: true,
+        email: true,
+        country: true,
+        bio: true,
+      },
+    });
+
+    return user;
+  };
+
+  const user = getUser();
 
   return (
     <>

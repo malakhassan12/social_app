@@ -15,6 +15,14 @@ import { getUserId } from "@/helper/getUserId";
 import { NotificationType } from "@/generated/prisma/enums";
 import { Notification } from "@/types/notification.Types";
 
+
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Notifications page",
+};
+
+
 const Page = async () => {
   const userId = (await getUserId()) as string;
 

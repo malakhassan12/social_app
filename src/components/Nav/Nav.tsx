@@ -1,7 +1,8 @@
-import { FC } from "react";
+import { FC, Suspense } from "react";
 import Logo from "../Logo/Logo";
 import NavSearch from "../Search/NavSearch";
 import NavBtns from "../Buttons/NavBtns";
+import NavBtnsSkeleton from "../Skelton/NavBtnsSkelton";
 
 type PROPS = {
   children: React.ReactNode; // Sidebar trigger
@@ -17,12 +18,16 @@ const Nav: FC<PROPS> = ({ children }) => {
       </div>
 
       {/* Center Section: Search Bar */}
-      <NavSearch />
+      <div className="hidden md:block mt-2 flex-1 max-w-md mx-4 ">
+        <NavSearch />
+      </div>
 
       {/* Right Section: Action Buttons */}
-      <div className="hidden md:flex items-center gap-1 sm:gap-2 ">
-        <NavBtns />
-      </div>
+      <Suspense fallback={<NavBtnsSkeleton />}>
+        <div className="hidden md:flex items-center gap-1 sm:gap-2 ">
+          <NavBtns />
+        </div>
+      </Suspense>
     </header>
   );
 };

@@ -10,22 +10,33 @@ import NavBtns from "../Buttons/NavBtns";
 import ProfileCard from "../Cards/ProfileCard";
 import { Separator } from "./separator";
 import Menusidebar from "./menu-sidebar";
+import NavSearch from "../Search/NavSearch";
+import { Suspense } from "react";
+import CardSkeleton from "../Skelton/CardSkelton";
+import NavBtnsSkeleton from "../Skelton/NavBtnsSkelton";
 
 export function AppSidebar() {
-
   return (
     <Sidebar>
       {/* Sidebar Header */}
       <SidebarHeader className="border-b px-4 py-3">
         <div className="flex items-center justify-between flex-col gap-1.5">
-          <ProfileCard />
+          <Suspense fallback={<CardSkeleton />}>
+            <ProfileCard />
+          </Suspense>
         </div>
 
-        <Separator/>
+        <Separator />
 
         {/* Mobile Navigation Buttons (ModeToggle, Profile, Notifications, Bookmark) */}
-        <div className="flex  flex-wrap md:hidden items-center justify-center gap-1 sm:gap-2 mt-2">
-          <NavBtns />
+        <Suspense fallback={<NavBtnsSkeleton />}>
+          <div className="flex  flex-wrap md:hidden items-center justify-center gap-1 sm:gap-2 mt-2">
+            <NavBtns />
+          </div>
+        </Suspense>
+
+        <div className="md:hidden mt-2">
+          <NavSearch />
         </div>
       </SidebarHeader>
 
@@ -36,7 +47,7 @@ export function AppSidebar() {
             Main Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <Menusidebar/>
+            <Menusidebar />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
