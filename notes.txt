@@ -1,7 +1,38 @@
 
 
 
-I have problem with the synchrouns of the events with likes , shares ,  follows , and suggestions with requests 
+I will make 
+ - Any one can make Follow-up to any user, if account public.
+ - Can req connect To any one (public / private).
+ - Can't show profile details if an account is private.
+
+
+
+        Malak
+            - Malak@1234.com -> Email
+                - Malak112
+                - Moka113
+                - Miko114
+(True)--
+            - Moka@1234.com -> Email
+                - Malak120
+                - Moka121
+                - Miko122
+
+
+        when make sign-up :
+            add the email with info of the account;
+(True)--
+        when make login :
+            add email and select the account realted with that email;
+
+
+
+
+
+
+
+(True)-- I have problem with the synchrouns of the events with likes , shares ,  follows , and suggestions with requests 
 
 
 

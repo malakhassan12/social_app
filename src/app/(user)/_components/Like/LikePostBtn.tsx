@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LikeResponse } from "@/types/like.Types";
 import { Post } from "@/types/post.Types";
 import { Heart } from "lucide-react";
-import { useTransition, useState } from "react";
+import { useTransition,  } from "react";
 import { toast } from "sonner";
 
 const LikePostBtn = ({
@@ -17,8 +17,6 @@ const LikePostBtn = ({
   likedCount: number;
   isLike: boolean;
 }) => {
-  const [likesCount, setLikesCount] = useState<number>(likedCount);
-  const [liked, setLiked] = useState<boolean>(isLike);
   const [pending, startTransition] = useTransition();
 
   const handleLike = () => {
@@ -31,10 +29,6 @@ const LikePostBtn = ({
         });
         return;
       }
-
-      setLiked(res.liked);
-
-      setLikesCount((prev) => (res.liked ? prev + 1 : prev - 1));
 
       toast.success(res.liked ? "Post liked ❤️" : "Like removed", {
         position: "top-center",
@@ -57,10 +51,10 @@ const LikePostBtn = ({
       "
     >
       <Heart
-        className={`h-4 w-4 ${liked ? "fill-red-500 text-red-500" : ""}`}
+        className={`h-4 w-4 ${isLike ? "fill-red-500 text-red-500" : ""}`}
       />
 
-      <span className="text-xs font-medium">{likesCount}</span>
+      <span className="text-xs font-medium">{likedCount}</span>
     </Button>
   );
 };

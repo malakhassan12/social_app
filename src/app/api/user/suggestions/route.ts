@@ -1,13 +1,11 @@
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
 
-export const revalidate = 60;
 
 export async function GET() {
-  const userId = (await getUserId()) as string;
+  const accountId = (await getAccountId()) as string;
 
-  console.log(userId)
-  if (!userId) {
+  if (!accountId) {
     return Response.json(
       {
         error: "Unauthorized",
@@ -18,9 +16,9 @@ export async function GET() {
     );
   }
 
-  const user = await prisma.user.findUnique({
+  const account = await prisma.account.findUnique({
     where: {
-      id: userId,
+      id: accountId,
     },
     select: {
       id: true,
@@ -29,11 +27,11 @@ export async function GET() {
   });
 
   try {
-    const users = await prisma.user.findMany({
+    const accounts = await prisma.account.findMany({
       where: {
-        country: user?.country,
+        country: account?.country,
         NOT: {
-          id: userId,
+          id: accountId,
         },
       },
       select: {
@@ -47,12 +45,12 @@ export async function GET() {
 
     // If no users from same country, show random users
     const suggestions =
-      users.length > 0
-        ? users
-        : await prisma.user.findMany({
+      accounts.length > 0
+        ? accounts
+        : await prisma.account.findMany({
             where: {
               NOT: {
-                id: userId,
+                id: accountId,
               },
             },
             take: 6,
@@ -62,6 +60,7 @@ export async function GET() {
               image: true,
               email: true,
               country: true,
+              username : true
             },
           });
 

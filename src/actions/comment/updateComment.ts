@@ -1,6 +1,6 @@
 "use server";
 
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
 import { Comment } from "@/types/comment.Types";
 import {
@@ -8,11 +8,13 @@ import {
   validateCreateComment,
 } from "@/utils/commentValidation";
 import { revalidatePath } from "next/cache";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 const updateComment = async (comment: Comment, formData: FormData) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -20,6 +22,7 @@ const updateComment = async (comment: Comment, formData: FormData) => {
       },
     };
   }
+
   const content = formData.get("content") as string;
 
   const errors: CommentErrors = {};
@@ -44,6 +47,8 @@ const updateComment = async (comment: Comment, formData: FormData) => {
       },
     });
     revalidatePath(`/api/comment/${comment?.postId}`);
+
+    await publishToFollowers(accountId, TypePublishSocket.COMMENT);
 
     return {
       success: true,

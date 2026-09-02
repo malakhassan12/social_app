@@ -10,21 +10,21 @@ import { LogOut, User as Us } from "lucide-react";
 import { authLogout } from "@/actions/auth/authLogout";
 import Link from "next/link";
 import ProfileAvatar from "../Avatar/ProfileAvatar";
-import { User } from "@/types/profile.Types";
+import { Account } from "@/types/account.Types";
 
-const ProfileBtn = ({ user }: { user: User }) => {
+const ProfileBtn = ({ account }: { account: Account }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
-          <ProfileAvatar name={user?.name} image={user?.image} />
+          <ProfileAvatar name={account?.name} image={account?.image} />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-56 p-2" align="end">
         <div className="flex items-center gap-2 px-2 py-1.5">
           <div className="flex flex-col">
-            <span className="text-sm font-medium">{user?.name}</span>
-            <span className="text-xs text-muted-foreground">{user?.email}</span>
+            <span className="text-sm font-medium">{account?.name}</span>
+            <span className="text-xs text-muted-foreground">{account?.email.email}</span>
           </div>
         </div>
         <Separator className="my-1" />

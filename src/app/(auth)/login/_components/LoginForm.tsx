@@ -8,6 +8,7 @@ import { FormState } from "@/types/form.Types";
 import { authLogin } from "@/actions/auth/authLogin";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import authSelectAccountToken from "@/actions/auth/authSelectAccountToken";
 
 const GlassInputWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="rounded-2xl border border-border bg-foreground/5 backdrop-blur-sm transition-colors focus-within:border-violet-400/70 focus-within:bg-violet-500/10">
@@ -31,13 +32,41 @@ const LoginForm = () => {
     const message = state.errors?.message;
 
     if (message) {
-      toast.error(message, { position: "top-center" });
+      toast.error(message, {
+        position: "top-center",
+      });
       return;
     }
 
     if (state.success) {
-      toast.success("Sign in successfully", { position: "top-center" });
-      router.replace("/");
+      toast.success("Sign in successfully", {
+        position: "top-center",
+      });
+
+      const data = state.data as
+        | {
+            emailId?: string;
+            userId?: string;
+          }
+        | undefined;
+
+      const emailId = data?.emailId;
+      const userId = data?.userId;
+
+      if (!emailId || !userId) {
+        toast.error("Invalid login response");
+        return;
+      }
+
+      // const params = new URLSearchParams({
+      //   emailId,
+      //   userId,
+      // });
+
+      void (async () => {
+        await authSelectAccountToken(userId, emailId);
+        // router.push(`/select-account?${params.toString()}`);
+      })();
     }
   }, [state, router]);
 

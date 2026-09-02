@@ -46,26 +46,27 @@
 
 
 import prisma from "@/lib/prisma";
-import { getUserId } from "./getUserId";
+import { getAccountId } from "./getAccountId";
 
 const getFollow = async (followingId: string) => {
-  const userId = await getUserId();
+ const accountId = (await getAccountId()) as string;
+ 
+    if (!accountId) {
+    return null
+   }
 
-  if (!userId) return null;
 
   const follow = await prisma.follower.findUnique({
     where: {
       followerId_followingId: {
-        followerId: userId,
+        followerId: accountId,
         followingId,
       },
     },
-    select: {
-      status: true,
-    },
+  
   });
 
-  return follow?.status ?? null;
+  return follow ?? null;
 };
 
 export { getFollow };

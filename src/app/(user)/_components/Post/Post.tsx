@@ -6,15 +6,15 @@ import {
 } from "@/components/ui/card";
 import { Post } from "@/types/post.Types";
 import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
-import { getUserId } from "@/helper/getUserId";
 import PostFooter from "./PostFooter";
 import PostContent from "./PostContent";
 import { getTime } from "@/utils/getTime";
 import CurdPostBtn from "./CurdPostBtn";
 import { Lock } from "lucide-react";
+import { getAccountId } from "@/helper/getAccountId";
 
 const PostCard = async ({ post }: { post: Post }) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
   return (
     <Card className=" border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
@@ -45,7 +45,7 @@ const PostCard = async ({ post }: { post: Post }) => {
           </div>
         </div>
 
-        {userId === post.author.id && <CurdPostBtn post={post} />}
+        {accountId === post.author.id && <CurdPostBtn post={post} />}
       </CardHeader>
 
       {/* Content */}

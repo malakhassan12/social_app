@@ -1,15 +1,23 @@
 "use server";
 
-import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
+import { getAccountId } from "./getAccountId";
 
 const getLikeComment = async (commentId: string) => {
-  const userId = (await getUserId()) as string;
+  const accountId = (await getAccountId()) as string;
 
+  if (!accountId) {
+    return {
+      success: false,
+      errors: {
+        message: "Unauthorized",
+      },
+    };
+  }
   const like = await prisma.commentLike.findUnique({
     where: {
-      userId_commentId: {
-        userId,
+      accountId_commentId: {
+        accountId,
         commentId,
       },
     },

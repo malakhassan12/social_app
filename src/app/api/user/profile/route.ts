@@ -1,11 +1,10 @@
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const userId = (await getUserId()) as string;
+  const accountId = (await getAccountId()) as string;
 
-  console.log(userId);
-  if (!userId) {
+  if (!accountId) {
     return Response.json(
       {
         error: "Unauthorized",
@@ -17,9 +16,9 @@ export async function GET() {
   }
 
   try {
-    const user = await prisma?.user?.findUnique({
+    const account = await prisma?.account?.findUnique({
       where: {
-        id: userId,
+        id: accountId,
       },
       select: {
         image: true,
@@ -32,7 +31,7 @@ export async function GET() {
 
     const followers = await prisma.follower.findMany({
       where: {
-        followingId: userId,
+        followingId: accountId,
       },
       select: {
         id: true,
@@ -41,7 +40,7 @@ export async function GET() {
 
     const followings = await prisma.follower.findMany({
       where: {
-        followerId: userId,
+        followerId: accountId,
       },
       select: {
         id: true,
@@ -50,7 +49,7 @@ export async function GET() {
 
     const posts = await prisma.post.findMany({
       where: {
-        authorId: userId,
+        accountId
       },
       select: {
         id: true,
@@ -59,7 +58,7 @@ export async function GET() {
 
     return Response.json(
       {
-        user,
+        account,
         followers,
         followings,
         posts,

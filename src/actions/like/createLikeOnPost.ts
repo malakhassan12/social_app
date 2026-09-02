@@ -1,20 +1,23 @@
 "use server";
 
 import { NotificationType } from "@/generated/prisma/enums";
-import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { LikeResponse } from "@/types/like.Types";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
+import { getAccountId } from "@/helper/getAccountId";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
+import { getIo } from "@/lib/socket/getIo";
 
 const createLikeOnPost = async (postId: string) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
-      error: {
+      errors: {
         message: "Unauthorized",
       },
     };
@@ -24,8 +27,8 @@ const createLikeOnPost = async (postId: string) => {
 
   const like = await prisma.postLike.findUnique({
     where: {
-      userId_postId: {
-        userId,
+      accountId_postId: {
+        accountId,
         postId,
       },
     },
@@ -34,8 +37,8 @@ const createLikeOnPost = async (postId: string) => {
   if (like) {
     await prisma.postLike.delete({
       where: {
-        userId_postId: {
-          userId,
+        accountId_postId: {
+          accountId,
           postId,
         },
       },
@@ -48,7 +51,7 @@ const createLikeOnPost = async (postId: string) => {
   } else {
     await prisma.postLike.create({
       data: {
-        userId,
+        accountId,
         postId,
       },
     });
@@ -62,19 +65,29 @@ const createLikeOnPost = async (postId: string) => {
         id: postId,
       },
       select: {
-        authorId: true,
+        accountId: true,
       },
     });
 
-    if (post?.authorId) {
-      const notification: NOTIREQUEST = {
-        title: "New Like",
-        content: `liked your post`,
-        creatorId: userId, // Iam make the action
-        userId: post.authorId, // the notification sent to the specific user
-        notificationType: NotificationType.LIKE,
-      };
-      createNotification(notification);
+    if (post?.accountId) {
+      if (accountId !== post.accountId) {
+        const notification: NOTIREQUEST = {
+          title: "New Like",
+          content: `liked your post`,
+          creatorId: accountId, // Iam make the action
+          receiverId: post.accountId, // the notification sent to the specific user
+          notificationType: NotificationType.LIKE,
+        };
+        createNotification(notification);
+      }
+      const io = getIo();
+
+      await publishToFollowers(post.accountId, TypePublishSocket.POST);
+      console.log("📡 SOCKET EMIT", {
+        event: "post-liked",
+        postId,
+        socketCount: io.engine.clientsCount,
+      });
     }
   }
 

@@ -5,11 +5,14 @@ import CreatePostTabs from "@/components/Tabs/CreatePostTabs/CreatePostTabs";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { FormState } from "@/types/form.Types";
 import { Send } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect,  } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
+// import { socket } from "@/lib/socket/socket";
 
 const initialState: FormState = {
   errors: {},
@@ -17,7 +20,7 @@ const initialState: FormState = {
 
 const CreatePostForm = () => {
   const router = useRouter();
-
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const [state, formAction, pending] = useActionState(createPost, initialState);
 
@@ -33,6 +36,9 @@ const CreatePostForm = () => {
 
     if (state.success) {
       toast.success("Post created successfully!", { position: "top-center" });
+
+      // socket.emit('post:created')
+      
       router.push("/");
     }
   }, [state, router]);
@@ -51,7 +57,7 @@ const CreatePostForm = () => {
           id="desc"
           name="desc"
           placeholder="Share your thoughts with the world..."
-          className="w-full min-h-[120px] resize-none border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent rounded-xl p-4 transition-all"
+          className="w-full min-h-30 resize-none border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent rounded-xl p-4 transition-all"
           maxLength={500}
         />
       </div>
@@ -61,9 +67,27 @@ const CreatePostForm = () => {
         <CreatePostTabs />
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons + Private Toggle */}
       <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-        <span className="text-xs text-gray-400 dark:text-gray-500"></span>
+        {/* Private toggle – placed on the left */}
+        <div className="flex items-center gap-2">
+          <Label
+            htmlFor="private-switch"
+            className="text-sm text-gray-600 dark:text-gray-400"
+          >
+            Private
+          </Label>
+          <Switch
+            id="private-switch"
+            checked={isPrivate}
+            onCheckedChange={setIsPrivate}
+          />
+          <input
+            type="hidden"
+            name="isPrivate"
+            value={isPrivate ? "true" : "false"}
+          />
+        </div>
 
         <Button
           type="submit"

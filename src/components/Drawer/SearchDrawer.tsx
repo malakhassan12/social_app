@@ -16,13 +16,13 @@ import { Input } from "@/components/ui/input";
 
 import { Loader2, Search, X } from "lucide-react";
 
-import { User } from "@/types/profile.Types";
 import { Post } from "@/types/post.Types";
 import UserCard from "../Cards/UserCard";
 import PostCard from "../Cards/PostCard";
+import { Account } from "@/types/account.Types";
 
 interface SearchResponse {
-  users: User[];
+  users: Account[];
   posts: Post[];
 }
 
@@ -30,7 +30,7 @@ const SearchDrawer: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Account[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -152,7 +152,7 @@ const SearchDrawer: FC<{
                   </div>
                   <div className="space-y-1">
                     {users.map((user) => (
-                      <UserCard key={user?.id} user={user} />
+                      <UserCard key={user?.id} account={user} />
                     ))}
                   </div>
                 </div>

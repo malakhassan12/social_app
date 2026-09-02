@@ -1,15 +1,45 @@
 "use client";
+
 import CreatePostBtn from "../Buttons/CreatePostBtn";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
-import { Image, Smile, Video, Send, Loader2 } from "lucide-react";
+import {
+  Image,
+  Smile,
+  Video,
+  Send,
+  Loader2,
+} from "lucide-react";
 import { Textarea } from "../ui/textarea";
+import { Switch } from "../ui/switch";
+import { Label } from "../ui/label";
+
 import { createPost } from "@/actions/posts/createPost";
 import { toast } from "sonner";
-import { useTransition } from "react";
+import { useTransition, useState, useEffect } from "react";
+import isAccountPrivate from "@/helper/isAccountPrivate";
 
 const CreatePostBar = () => {
   const [pending, startTransition] = useTransition();
+
+  const [isPrivate, setIsPrivate] = useState(false);
+
+  // هل الـ account نفسه Private؟
+  const [isPrivateAccount, setIsPrivateAccount] = useState(false);
+
+  useEffect(() => {
+    const checkAccountPrivacy = async () => {
+      const result = await isAccountPrivate();
+
+      // isAccountPrivate() ممكن ترجع boolean
+      // أو object في حالة Unauthorized
+      if (typeof result === "boolean") {
+        setIsPrivateAccount(result);
+      }
+    };
+
+    checkAccountPrivacy();
+  }, []);
 
   const submit = (formData: FormData) => {
     startTransition(async () => {
@@ -23,28 +53,27 @@ const CreatePostBar = () => {
       toast.success("Post created successfully!");
     });
   };
+
   return (
     <Card className="border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="p-3 sm:p-4">
         <form action={submit}>
-          {/* Avatar + Input Section */}
           <div className="flex items-start sm:items-center gap-2 sm:gap-3">
             <Textarea
               placeholder="What's on your mind?..."
-              className="flex-1 h-20 max-h-[80px] sm:h-[60px] sm:max-h-[60px] rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all resize-none overflow-y-auto text-sm sm:text-base scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500"
+              className="flex-1 h-20 max-h-20 sm:h-15 m:max-h-15 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all resize-none overflow-y-auto text-sm sm:text-base scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500"
               autoFocus
               name="desc"
             />
           </div>
 
-          {/* Expanded Actions - Shows when textarea is focused */}
           <div className="mt-3 sm:mt-4 space-y-3">
-            {/* Media Buttons */}
             <div className="flex flex-wrap items-center gap-1 sm:gap-2">
               <Button
                 variant="ghost"
                 size="sm"
                 className="rounded-full text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-2 sm:px-3"
+                aria-label="Add a photo"
               >
                 <Image className="h-4 w-4 sm:mr-1.5" />
                 <span className="text-xs font-medium hidden sm:inline">
@@ -76,12 +105,13 @@ const CreatePostBar = () => {
 
               <div className="flex-1" />
 
-              {/* Character Counter */}
               <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
-                <span className="font-medium text-green-400"></span> /280
+                <span className="font-medium text-green-400">
+                  0
+                </span>{" "}
+                /280
               </span>
 
-              {/* Action Buttons */}
               <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   type="submit"
@@ -103,12 +133,34 @@ const CreatePostBar = () => {
               </div>
             </div>
           </div>
-        </form>
 
-        {/* Bottom Section - Only show when not expanded */}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-          <CreatePostBtn />
-        </div>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+            <CreatePostBtn />
+
+            {!isPrivateAccount && (
+              <div className="flex items-center gap-2">
+                <Label
+                  htmlFor="private-switch"
+                  className="text-sm text-gray-600 dark:text-gray-400"
+                >
+                  Private
+                </Label>
+
+                <Switch
+                  id="private-switch"
+                  checked={isPrivate}
+                  onCheckedChange={setIsPrivate}
+                />
+
+                <input
+                  type="hidden"
+                  name="isPrivate"
+                  value={isPrivate ? "true" : "false"}
+                />
+              </div>
+            )}
+          </div>
+        </form>
       </CardContent>
     </Card>
   );

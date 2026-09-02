@@ -6,14 +6,13 @@ import {
 import DeleteNotificationBtn from "./DeleteNotificationBtn";
 import { getTime } from "@/utils/getTime";
 import { Notification } from "@/types/notification.Types";
-import { getUserId } from "@/helper/getUserId";
+import { FC } from "react";
 
-const NotificationItem = async ({
-  notification,
-}: {
+type Props = {
   notification: Notification;
-}) => {
-  const userId = await getUserId();
+  onDelete: (notificationId: string) => void;
+};
+const NotificationItem: FC<Props> =  ({ notification, onDelete }) => {
   return (
     <div
       className={`flex items-start gap-3 p-4 transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800/30 group ${
@@ -37,9 +36,7 @@ const NotificationItem = async ({
             />
             <p className="text-sm text-gray-900 dark:text-white leading-relaxed">
               <span className="font-semibold">
-                {userId === notification?.creatorId
-                  ? "You are "
-                  : notification?.creator?.name}
+                {notification?.creator?.name}
               </span>
               <span className="text-gray-500 dark:text-gray-400">
                 {" "}
@@ -65,7 +62,10 @@ const NotificationItem = async ({
 
       {/* Actions */}
       <div className="flex items-center gap-1 shrink-0">
-        <DeleteNotificationBtn notificationId={notification.id} />
+        <DeleteNotificationBtn
+          notificationId={notification.id}
+          onDelete={onDelete}
+        />
       </div>
     </div>
   );

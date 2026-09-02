@@ -1,15 +1,18 @@
 "use server";
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
+import { getIo } from "@/lib/socket/getIo";
 import { revalidatePath } from "next/cache";
 
 const deleteNoti = async (notificationId: string) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
-      message: "Unauthorized",
       success: false,
+      errors: {
+        message: "Unauthorized",
+      },
     };
   }
 
@@ -17,7 +20,12 @@ const deleteNoti = async (notificationId: string) => {
     await prisma.notification.delete({
       where: { id: notificationId },
     });
+
     revalidatePath("/notification");
+
+    const io = getIo();
+
+    io.to(`account:${accountId}`).emit("publish:notification");
 
     return {
       success: true,

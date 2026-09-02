@@ -1,14 +1,16 @@
 "use server";
 
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
 import { Comment } from "@/types/comment.Types";
 import { revalidatePath } from "next/cache";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 const deleteComment = async (comment: Comment) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -23,6 +25,8 @@ const deleteComment = async (comment: Comment) => {
     });
 
     revalidatePath(`/api/comment/${comment?.postId}`);
+
+    await publishToFollowers(accountId, TypePublishSocket.COMMENT);
 
     return {
       success: true,

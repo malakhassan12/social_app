@@ -1,119 +1,124 @@
 "use server";
 
-import { getUserId } from "@/helper/getUserId";
+import { AccountType, NotificationType } from "@/generated/prisma/enums";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
+import { FormState } from "@/types/form.Types";
 import { revalidatePath } from "next/cache";
+
 import { createNotification } from "../notification/createNotification";
 import { NOTIREQUEST } from "@/types/notification.Types";
-import { NotificationType } from "@/generated/prisma/enums";
+import { getIo } from "@/lib/socket/getIo";
 
-const makeFollow = async (followingId: string) => {
-  const userId = await getUserId();
+const makeFollow = async (followingId: string): Promise<FormState> => {
+  // 1️⃣ Get currently selected account
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
+      errors: {
+        message: "Unauthorized",
+      },
     };
   }
 
-  /*
-    Nagham send the req , her id = 123 -> follower
-    Malak recieve the req , her id = 456 -> following
-
-    in the same moment , Malak dont know that nagham send to her a request!
-
-    Malak send the res to Nagham , her id = 456 - follower
-    Nagham recienve the req , her id = 123 -> following
-
-
-    that mean the same request to the same 2 persons and that wrong !!! should one only 
-
-  */
-
-  const existing = await prisma.follower.findFirst({
-    where: {
-      OR: [
-        {
-          followerId: userId,
-          followingId,
-        },
-        {
-          followerId: followingId,
-          followingId: userId,
-        },
-      ],
-    },
-  });
-
-  // Already friends
-  // if (existing?.status === "ACCEPTED") {
-  //   await prisma.follower.delete({
-  //     where: {
-  //       id: existing.id,
-  //     },
-  //   });
-
-  //   revalidatePath("/explore");
-
-  //   return {
-  //     success: true,
-  //     followed: false,
-  //   };
-  // }
-
-  // Request exists
-  if (existing?.status === "PENDING" || existing?.status === "ACCEPTED") {
-    // I am the sender
-    if (existing.followerId === userId) {
-      await prisma.follower.delete({
-        where: {
-          id: existing.id,
-        },
-      });
-
-      revalidatePath("/explore");
-
-      return {
-        success: true,
-        followed: false,
-        error: {
-          message: "Request cancelled",
-        },
-      };
-    }
-
-    // // I am the receiver
-    // return {
-    //   success: false,
-    //   error: {
-    //     message: "This user already sent you a request",
-    //   },
-    // };
+  // 2️⃣ Prevent following yourself
+  if (accountId === followingId) {
+    return {
+      success: false,
+      errors: {
+        message: "You can't follow yourself",
+      },
+    };
   }
 
-  // No relation exists
-  await prisma.follower.create({
-    data: {
-      followerId: userId,
-      followingId,
-      status: "PENDING",
+  // 3️⃣ Check target account
+  const targetAccount = await prisma.account.findUnique({
+    where: {
+      id: followingId,
+    },
+    select: {
+      id: true,
+      type: true,
     },
   });
 
+  if (!targetAccount) {
+    return {
+      success: false,
+      errors: {
+        message: "Account not found",
+      },
+    };
+  }
+
+  // 4️⃣ Private account
+  if (targetAccount.type === AccountType.PRIVATE) {
+    return {
+      success: false,
+      errors: {
+        message: "This account is private",
+      },
+    };
+  }
+
+  // 5️⃣ Check existing follow
+  const existing = await prisma.follower.findUnique({
+    where: {
+      followerId_followingId: {
+        followerId: accountId,
+        followingId,
+      },
+    },
+  });
+
+  // 6️⃣ Already following → Unfollow
+  if (existing) {
+    await prisma.follower.delete({
+      where: {
+        id: existing.id,
+      },
+    });
+
+    revalidatePath("/explore");
+
+    return {
+      success: true,
+      data: {
+        followed: false,
+      },
+    };
+  }
+
+  // 7️⃣ Create follow
+  await prisma.follower.create({
+    data: {
+      followerId: accountId,
+      followingId,
+    },
+  });
+
+  // 8️⃣ Create notification
   const notification: NOTIREQUEST = {
     title: "New Follower",
-    content: `want follow you`,
-    creatorId: userId, // Iam make the action
-    userId: followingId, //  the notification sended to the specific user
+    content: "Someone started following you",
+    creatorId: accountId,
+    receiverId: followingId,
     notificationType: NotificationType.FOLLOW,
   };
-  createNotification(notification);
 
+  await createNotification(notification);
+
+  const io = getIo();
+
+  io.to(`account:${followingId}`).emit("publish:explore");
+
+  // 9️⃣ Revalidate server-rendered data
   revalidatePath("/explore");
 
   return {
     success: true,
-    followed: true,
   };
 };
 

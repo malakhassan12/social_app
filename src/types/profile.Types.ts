@@ -1,13 +1,9 @@
 interface User {
   email: string;
   id: string;
-  name: string;
-  image?: string | null;
-  country?: string;
-  bio?: string;
+  phone?: string;
 }
 
-import { FollowStatus } from "@/generated/prisma/enums";
 
 export interface Follower {
   id: string;
@@ -17,8 +13,6 @@ export interface Follower {
 
   follower: User;
   following: User;
-
-  status: FollowStatus;
 
   createdAt: Date;
 }

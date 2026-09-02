@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Post } from "@/types/post.Types";
 
 const PostContent = ({ post }: { post: Post }) => {
@@ -15,10 +16,13 @@ const PostContent = ({ post }: { post: Post }) => {
               key={img}
               className="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
             >
-              <img
+              <Image
                 src={img}
                 alt={`Post image ${index + 1}`}
-                className="w-full h-full object-cover"
+                fill
+                sizes="(max-width: 768px) 50vw, 25vw"
+                className="object-cover"
+                unoptimized
               />
             </div>
           ))}
@@ -33,7 +37,7 @@ const PostContent = ({ post }: { post: Post }) => {
               key={index}
               src={vid}
               controls
-              className="w-full rounded-lg max-h-[400px] bg-black/5"
+              className="w-full rounded-lg max-h-100 bg-black/5"
             />
           ))}
         </div>

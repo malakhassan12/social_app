@@ -7,6 +7,7 @@ import { SimpleFooter } from "@/components/Footer/Footer";
 import { Suspense } from "react";
 import RightPanelSkelton from "@/components/Skelton/RightPanelSkelton";
 import SidebarSkeleton from "@/components/Skelton/SidebarSkeleton";
+import ClientSidebar from "@/components/ui/ClientSidebar";
 
 export const metadata: Metadata = {
   title: {
@@ -27,9 +28,9 @@ const layout = ({
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
-        <Suspense fallback={<SidebarSkeleton />}>
+        <ClientSidebar>
           <AppSidebar />
-        </Suspense>
+        </ClientSidebar>
 
         <div className="flex flex-1 flex-col overflow-hidden">
           <Nav>

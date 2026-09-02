@@ -12,7 +12,7 @@ export async function getUserId() {
     return null;
   }
 
-  const userId = await getSession(sessionId);
+  const { userId } = await getSession(sessionId);
 
   return userId;
 }

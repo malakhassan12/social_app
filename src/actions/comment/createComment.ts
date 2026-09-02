@@ -1,17 +1,19 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getUserId } from "@/helper/getUserId";
 import { validateCreateComment } from "@/utils/commentValidation";
 import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { NotificationType } from "@/generated/prisma/enums";
+import { getAccountId } from "@/helper/getAccountId";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 export async function createComment(postId: string, formData: FormData) {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -37,7 +39,7 @@ export async function createComment(postId: string, formData: FormData) {
     data: {
       content,
       postId,
-      authorId: userId,
+      accountId,
     },
   });
 
@@ -46,20 +48,24 @@ export async function createComment(postId: string, formData: FormData) {
       id: postId,
     },
     select: {
-      authorId: true,
+      accountId: true,
     },
   });
 
-  if (post?.authorId) {
-    const notification: NOTIREQUEST = {
-      title: "New Comment",
-      content: `made a comment on your post`,
-      creatorId: userId,
-      userId: post.authorId,
-      notificationType: NotificationType.COMMENT,
-    };
 
-    await createNotification(notification);
+  if (post?.accountId) {
+    if (accountId !== post.accountId) {
+      const notification: NOTIREQUEST = {
+        title: "New Comment",
+        content: `made a comment on your post`,
+        creatorId: accountId,
+        receiverId: post.accountId,
+        notificationType: NotificationType.COMMENT,
+      };
+
+      await createNotification(notification);
+    }
+    await publishToFollowers(post.accountId, TypePublishSocket.COMMENT);
   }
 
   revalidatePath(`/api/comment/${postId}`);

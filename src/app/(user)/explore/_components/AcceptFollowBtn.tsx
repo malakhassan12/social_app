@@ -1,6 +1,6 @@
 "use client";
 
-import { acceptFollow } from "@/actions/Follow/acceptFollow";
+import { acceptFollowRequest } from "@/actions/FollowRequest/acceptFollowRequest";
 import { Button } from "@/components/ui/button";
 import { UserCheck } from "lucide-react";
 import { useTransition } from "react";
@@ -17,12 +17,13 @@ const AcceptFollowBtn = ({
 
   const handleAccept = () => {
     startTransition(async () => {
-      const res = await acceptFollow(followerId);
+      const res = await acceptFollowRequest(followerId);
 
       if (res.success) {
         toast.success("Follow request accepted", {
           position: "top-center",
         });
+
 
         router.refresh();
       } else {

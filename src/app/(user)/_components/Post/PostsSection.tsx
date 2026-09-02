@@ -1,10 +1,14 @@
 import { Post } from "@/types/post.Types";
 import PostCard from "./Post";
+import { cookies } from "next/headers";
 
 async function PostsSection() {
-
-
-  const res = await fetch(`${process.env.API_V1}/api/post`);
+  const cookieStore = await cookies();
+  const res = await fetch(`${process.env.API_V1}/api/post`, {
+    headers: {
+      Cookie: cookieStore.toString(),
+    },
+  });
 
   if (!res.ok) {
     throw new Error(`Request failed: ${res.status}`);
@@ -14,11 +18,11 @@ async function PostsSection() {
   const posts = data?.posts;
 
   return (
-    <div className="space-y-4  ">
+    <>
       {posts?.map((post: Post) => (
         <PostCard key={post?.id} post={post} />
       ))}
-    </div>
+    </>
   );
 }
 

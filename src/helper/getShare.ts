@@ -1,15 +1,23 @@
 "use server";
 
-import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
+import { getAccountId } from "./getAccountId";
 
 const getShare = async (postId: string) => {
-  const userId = (await getUserId()) as string;
+  const accountId = (await getAccountId()) as string;
 
+  if (!accountId) {
+    return {
+      success: false,
+      errors: {
+        message: "Unauthorized",
+      },
+    };
+  }
   const share = await prisma.share.findFirst({
     where: {
       postId: postId,
-      shareToId: userId,
+      shareToId: accountId,
     },
   });
 

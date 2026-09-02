@@ -1,14 +1,18 @@
 "use server";
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
+import { NOTIREQUEST } from "@/types/notification.Types";
 import { Post } from "@/types/post.Types";
 import { ShareResponse } from "@/types/share.Types";
 import { revalidatePath } from "next/cache";
+import { createNotification } from "../notification/createNotification";
+import { NotificationType } from "@/generated/prisma/enums";
+import { getIo } from "@/lib/socket/getIo";
 
 const createSharePost = async (post: Post) => {
-  const userId = (await getUserId()) as string;
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -22,9 +26,11 @@ const createSharePost = async (post: Post) => {
   const share = await prisma.share.findFirst({
     where: {
       postId: post?.id,
-      shareToId: userId,
+      shareToId: accountId,
     },
   });
+
+  let shareFromId;
 
   if (share) {
     await prisma.share.delete({
@@ -37,19 +43,38 @@ const createSharePost = async (post: Post) => {
       success: true,
       shared: false,
     };
+    shareFromId = share.shareFromId;
   } else {
-    await prisma.share.create({
+    const share = await prisma.share.create({
       data: {
         postId: post?.id,
         shareFromId: post?.author?.id,
-        shareToId: userId,
+        shareToId: accountId,
       },
     });
     res = {
       success: true,
       shared: true,
     };
+
+    shareFromId = share.shareFromId;
+
+    if (accountId !== share.shareFromId) {
+      const notification: NOTIREQUEST = {
+        title: "New Share",
+        content: "Someone shared your post",
+        creatorId: accountId,
+        receiverId: share.shareFromId,
+        notificationType: NotificationType.SHARE,
+      };
+
+      await createNotification(notification);
+    }
   }
+  const io = getIo();
+
+  io.to(`account:${shareFromId}`).emit("publish:post");
+
   revalidatePath(`/api/post/${post?.id}`);
 
   return res;

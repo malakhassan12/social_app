@@ -1,8 +1,8 @@
 import CreatePostBar from "@/components/Bar/CreatePostBar";
-import PostsSection from "./_components/Post/PostsSection";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import PostsSkeleton from "@/components/Skelton/PostsSkeleton";
+import Posts from "./_components/Post/Posts";
 
 export const metadata: Metadata = {
   title: "Home Page",
@@ -14,7 +14,7 @@ export default async function Home() {
       <CreatePostBar />
       <br />
       <Suspense fallback={<PostsSkeleton />}>
-        <PostsSection />
+        <Posts />
       </Suspense>{" "}
     </>
   );

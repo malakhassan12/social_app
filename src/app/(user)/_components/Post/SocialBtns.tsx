@@ -21,14 +21,14 @@ const SocialBtns = async ({
       <ButtonGroup>
         <LikePostBtn
           post={post}
-          isLike={liked?.isLiked}
-          likedCount={liked?.likedCount}
+          isLike={liked?.isLiked as boolean}
+          likedCount={liked?.likedCount as number}
         />
         {showComment && <CommentBtn post={post} />}
         <SharePostBtn
           post={post}
-          isShared={shared?.isShared}
-          sharedCount={shared?.sharedCount}
+          isShared={shared?.isShared as boolean}
+          sharedCount={shared?.sharedCount as number}
         />
       </ButtonGroup>
     </div>

@@ -1,23 +1,23 @@
 "use server";
 
-import { NotificationType } from "@/generated/prisma/enums";
-import { getUserId } from "@/helper/getUserId";
+import { AccountType } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
 import { FormState } from "@/types/form.Types";
-import { NOTIREQUEST } from "@/types/notification.Types";
 import { validateCreatePost } from "@/utils/postValidation";
 import { revalidatePath } from "next/cache";
-import { createNotification } from "../notification/createNotification";
-import { redirect } from "next/navigation";
+import { getAccountId } from "@/helper/getAccountId";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
+import { Post } from "@/types/post.Types";
 
 export async function createPost(
   prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -26,7 +26,18 @@ export async function createPost(
     };
   }
 
+  const account = await prisma.account.findFirst({
+    where: {
+      id: accountId,
+    },
+    select: {
+      type: true,
+    },
+  });
+
   const desc = formData.get("desc") as string;
+
+  const isPrivate = (formData.get("isPrivate") as string) === "true";
 
   const images = formData
     .getAll("images")
@@ -65,23 +76,17 @@ export async function createPost(
 
       video: videoUrls,
 
-      authorId: userId,
+      accountId,
+
+      isPrivate: account?.type === AccountType.PRIVATE ? true : isPrivate,
     },
   });
 
-  if (post?.authorId) {
-    const notification: NOTIREQUEST = {
-      title: "New Post",
-      content: `published a post`,
-      creatorId: userId,
-      userId: userId,
-      notificationType: NotificationType.PUBLISHED,
-    };
-
-    await createNotification(notification);
-  }
-
   revalidatePath(`/api/post`);
+  
+  await publishToFollowers(accountId, TypePublishSocket.POST, {
+    post: post as unknown as Post,
+  });
 
   return {
     success: true,

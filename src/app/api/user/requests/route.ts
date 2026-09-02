@@ -1,14 +1,11 @@
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/getAccountId";
 import prisma from "@/lib/prisma";
 
-
-
-
 export async function GET() {
-  const userId = (await getUserId()) as string;
+  const accountId = await getAccountId();
 
-  console.log(userId);
-  if (!userId) {
+  console.log(accountId);
+  if (!accountId) {
     return Response.json(
       {
         error: "Unauthorized",
@@ -22,8 +19,7 @@ export async function GET() {
   try {
     const requests = await prisma.follower.findMany({
       where: {
-        followingId: userId,
-        status: "PENDING",
+        followingId: accountId,
       },
       include: {
         follower: true,

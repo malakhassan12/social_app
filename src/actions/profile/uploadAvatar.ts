@@ -1,19 +1,22 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
+import { getAccountId } from "@/helper/getAccountId";
 
 export async function uploadAvatar(formData: FormData) {
-  const userId = await getUserId();
-
-  if (!userId) {
-    return {
-      success: false,
-      error: "Unauthorized",
-    };
-  }
+    const accountId = await getAccountId();
+  
+    if (!accountId) {
+      return {
+        success: false,
+        errors: {
+          message: "Unauthorized",
+        },
+      };
+    }
+  
 
   const image = formData.get("image") as File | null;
 
@@ -40,9 +43,9 @@ export async function uploadAvatar(formData: FormData) {
 
   const imageUrl = await uploadToCloudinary(image);
 
-  await prisma.user.update({
+  await prisma.account.update({
     where: {
-      id: userId,
+      id: accountId,
     },
     data: {
       image: imageUrl,
