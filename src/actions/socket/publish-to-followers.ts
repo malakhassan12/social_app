@@ -54,6 +54,7 @@ const publishToFollowers = async (
 
     if (type === TypePublishSocket.COMMENT) {
       io.to(`account:${receiverId}`).emit("publish:comment");
+      console.log('Publish Comment')
     }
 
     if (type === TypePublishSocket.LIKE) {

@@ -110,7 +110,6 @@ const usersData = [
 // ============================================================
 
 async function seedUsers() {
-  console.log("🌱 Seeding users...");
 
   for (const userData of usersData) {
     // --------------------------------------------------------
@@ -124,7 +123,6 @@ async function seedUsers() {
     });
 
     if (existingEmail) {
-      console.log(`⏩ User already exists: ${userData.email}`);
       continue;
     }
 
@@ -168,12 +166,9 @@ async function seedUsers() {
       },
     });
 
-    console.log(
-      `✅ Created: ${account.username} (${userData.email})`,
-    );
+  
   }
 
-  console.log("✅ Users seeding completed!");
 }
 
 // ============================================================

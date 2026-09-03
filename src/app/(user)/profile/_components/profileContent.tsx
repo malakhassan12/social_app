@@ -8,15 +8,17 @@ import { FC } from "react";
 import { Friend } from "@/types/friend.Types";
 
 type ProfileContentProps = {
-    params: Promise<{
+  params: Promise<{
     accountId: string;
   }>;
 };
 const ProfileContent: FC<ProfileContentProps> = async ({ params }) => {
+  const routeParams = await params;
 
-  const routeParams = await params
+  console.log(routeParams);
+  console.log("routeParams.accountId[0]", routeParams.accountId[0]);
   const { user, followers, followings, friends, posts, shares } =
-    await getProfile(routeParams.accountId);
+    await getProfile(routeParams.accountId[0]);
 
   const feedItems = [
     ...posts.map((post) => ({ type: "post" as const, data: post })),
@@ -34,7 +36,7 @@ const ProfileContent: FC<ProfileContentProps> = async ({ params }) => {
         followers={followers as unknown as Friend[]}
         followings={followings as unknown as Friend[]}
         posts={posts as unknown as Post[]}
-        friends = {friends as unknown as Friend[] }
+        friends={friends as unknown as Friend[]}
       />
 
       {/* Posts & Shares Section */}

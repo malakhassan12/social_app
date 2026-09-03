@@ -25,7 +25,7 @@ const createNotification = async (notification: NOTIREQUEST) => {
     if (notification.notificationType == NotificationType.PUBLISHED) {
       creatorId = accountId;
     }
-     await prisma.notification.create({
+    await prisma.notification.create({
       data: {
         title: notification.title,
 
@@ -40,13 +40,11 @@ const createNotification = async (notification: NOTIREQUEST) => {
         postId: notification.postId,
       },
     });
-    revalidatePath("/notification");
 
     const io = getIo();
 
-    io
-      .to(`account:${notification.receiverId}`)
-      .emit("publish:notification");
+    io.to(`account:${notification.receiverId}`).emit("publish:notification");
+    revalidatePath("/notification");
 
     return {
       success: true,

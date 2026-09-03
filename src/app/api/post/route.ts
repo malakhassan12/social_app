@@ -6,7 +6,6 @@ export async function GET() {
   try {
     const finalAccountId = await getAccountId();
 
-    console.log("finalAccountId", finalAccountId);
 
     // If user is not logged in
     if (!finalAccountId) {

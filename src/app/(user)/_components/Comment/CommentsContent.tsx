@@ -1,4 +1,3 @@
-import { getUserId } from "@/helper/getUserId";
 import { Comment } from "@/types/comment.Types";
 import { getTime } from "@/utils/getTime";
 import LikeCommentBtn from "../Like/LikeCommentBtn";
@@ -6,9 +5,10 @@ import { getLikeComment } from "@/helper/getLikeComment";
 import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
 import CurdCommentBtn from "./CurdCommentBtn";
 import CommentRealTime from "./CommentRealTime";
+import { getAccountId } from "@/helper/getAccountId";
 
 const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
   return (
     <>
       <CommentRealTime />
@@ -21,14 +21,6 @@ const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
           comments?.map(async (comment: Comment) => {
             const Liked = await getLikeComment(comment?.id);
 
-            console.log(
-              "❤️ COMMENT:",
-              comment.id,
-              "LIKES:",
-              Liked?.likedCount,
-              "IS LIKED:",
-              Liked?.isLiked,
-            );
             return (
               <div
                 key={comment.id}
@@ -65,7 +57,7 @@ const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
                 </div>
 
                 {/* Actions - More button */}
-                {userId == comment?.author?.id && (
+                {accountId == comment?.author?.id && (
                   <CurdCommentBtn comment={comment} />
                 )}
               </div>

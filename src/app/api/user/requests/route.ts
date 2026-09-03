@@ -4,7 +4,6 @@ import prisma from "@/lib/prisma";
 export async function GET() {
   const accountId = await getAccountId();
 
-  console.log(accountId);
   if (!accountId) {
     return Response.json(
       {

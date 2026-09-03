@@ -73,12 +73,20 @@ app.prepare().then(() => {
     }
   });
 
-  io.on("connection", (socket) => {
+    io.on("connection", (socket) => {
+    const authenticatedAccountId = socket.data.accountId; // 👈 Extract verified ID
+
     console.log("🔥 SOCKET CONNECTED", {
       socketId: socket.id,
-      accountId: socket.data.accountId,
+      accountId: authenticatedAccountId,
       transport: socket.conn.transport.name,
     });
+
+    // 👈 ADD THIS LINE HERE: Auto-join the private room globally!
+    if (authenticatedAccountId) {
+      socket.join(`account:${authenticatedAccountId}`);
+      console.log(`🔌 Socket ${socket.id} joined room: account:${authenticatedAccountId}`);
+    }
 
     socket.conn.on("upgrade", () => {
       console.log("⬆️ SOCKET TRANSPORT UPGRADED", {
@@ -96,6 +104,7 @@ app.prepare().then(() => {
       });
     });
   });
+
 
   // ========================================
   // Namespaces

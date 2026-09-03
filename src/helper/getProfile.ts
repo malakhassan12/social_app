@@ -9,6 +9,14 @@ const getProfile = async (accountId: string | undefined = undefined) => {
     ? accountId
     : ((await getAccountId()) as string);
 
+  console.log(
+    "finalAccountId:",
+    finalAccountId,
+    "typeof:",
+    typeof finalAccountId,
+    "isArray:",
+    Array.isArray(finalAccountId),
+  );
   if (!finalAccountId) {
     return {
       user: null,

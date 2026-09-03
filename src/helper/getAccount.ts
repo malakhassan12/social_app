@@ -21,6 +21,8 @@ const getAccount = async (parmsAccount: string | undefined = undefined) => {
       email: true,
       country: true,
       bio: true,
+      type : true,
+      username : true
     },
   });
 

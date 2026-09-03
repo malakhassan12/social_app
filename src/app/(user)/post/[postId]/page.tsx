@@ -92,7 +92,7 @@ async function Page({ params }: { params: Promise<{ postId: string }> }) {
           </div>
 
           {/* Comments List */}
-          <CommentsContent comments={comments} />
+          <CommentsContent comments={comments}  />
 
           {/* Comment Input */}
           <CommentInput postId={post?.id} />

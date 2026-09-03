@@ -21,7 +21,6 @@ const AccountCard = async ({ account, title }: AccountCardProps) => {
   // Determine which button to render
   const renderButton = () => {
     if (title === "Friends") {
-      console.log(requestStatus);
       return (
         <AddFriendBtn
           friendShipStatus={requestStatus?.status as FollowRequestEnum}
@@ -30,7 +29,6 @@ const AccountCard = async ({ account, title }: AccountCardProps) => {
       );
     }
     if (title === "Following") {
-      console.log(followStatus);
 
       return (
         <>

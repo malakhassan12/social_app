@@ -32,7 +32,7 @@ const deleteNoti = async (notificationId: string) => {
       message: "Deleted notification successfully",
     };
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return {
       success: false,
       message: "Something went wrong",

@@ -10,9 +10,6 @@ const CreatePostTabs = ({ post }: { post?: Post }) => {
   const { previews, imageRef, videoRef, handleFilesChange, removeFile } =
     useFilesUpload(post);
 
-  console.log(post);
-
-  console.log(previews);
   const remainingOldImages = previews
     .filter((p) => !p.url.startsWith("blob:") && p.type === "image")
     .map((p) => p.url);

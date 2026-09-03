@@ -6,7 +6,6 @@ import Nav from "@/components/Nav/Nav";
 import { SimpleFooter } from "@/components/Footer/Footer";
 import { Suspense } from "react";
 import RightPanelSkelton from "@/components/Skelton/RightPanelSkelton";
-import SidebarSkeleton from "@/components/Skelton/SidebarSkeleton";
 import ClientSidebar from "@/components/ui/ClientSidebar";
 
 export const metadata: Metadata = {

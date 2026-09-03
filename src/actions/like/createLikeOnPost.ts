@@ -9,7 +9,6 @@ import { createNotification } from "../notification/createNotification";
 import { getAccountId } from "@/helper/getAccountId";
 import publishToFollowers from "../socket/publish-to-followers";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
-import { getIo } from "@/lib/socket/getIo";
 
 const createLikeOnPost = async (postId: string) => {
   const accountId = await getAccountId();
@@ -34,6 +33,15 @@ const createLikeOnPost = async (postId: string) => {
     },
   });
 
+  const post = await prisma.post.findUnique({
+    where: {
+      id: postId,
+    },
+    select: {
+      accountId: true,
+    },
+  });
+
   if (like) {
     await prisma.postLike.delete({
       where: {
@@ -55,40 +63,25 @@ const createLikeOnPost = async (postId: string) => {
         postId,
       },
     });
+
     res = {
       success: true,
       liked: true,
     };
+  }
 
-    const post = await prisma.post.findUnique({
-      where: {
-        id: postId,
-      },
-      select: {
-        accountId: true,
-      },
-    });
-
-    if (post?.accountId) {
-      if (accountId !== post.accountId) {
-        const notification: NOTIREQUEST = {
-          title: "New Like",
-          content: `liked your post`,
-          creatorId: accountId, // Iam make the action
-          receiverId: post.accountId, // the notification sent to the specific user
-          notificationType: NotificationType.LIKE,
-        };
-        createNotification(notification);
-      }
-      const io = getIo();
-
-      await publishToFollowers(post.accountId, TypePublishSocket.POST);
-      console.log("📡 SOCKET EMIT", {
-        event: "post-liked",
-        postId,
-        socketCount: io.engine.clientsCount,
-      });
+  if (post?.accountId) {
+    if (accountId !== post.accountId) {
+      const notification: NOTIREQUEST = {
+        title: "New Like",
+        content: `liked your post`,
+        creatorId: accountId, // Iam make the action
+        receiverId: post.accountId, // the notification sent to the specific user
+        notificationType: NotificationType.LIKE,
+      };
+      createNotification(notification);
     }
+    await publishToFollowers(post.accountId, TypePublishSocket.POST);
   }
 
   revalidatePath(`/`);

@@ -27,7 +27,6 @@ async function updatePost(
   const desc = formData.get("desc") as string;
   const isPrivate = formData.get("isPrivate") === "true";
 
-  console.log("isPrivate", isPrivate);
 
   const images = formData
     .getAll("images")

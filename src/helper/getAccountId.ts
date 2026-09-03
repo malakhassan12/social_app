@@ -14,6 +14,5 @@ export async function getAccountId() {
 
   const { accountId } = await getSession(sessionId);
 
-  console.log("accountId", accountId);
   return accountId;
 }

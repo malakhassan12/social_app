@@ -36,4 +36,12 @@ I will make
 
 
 
+
+When an account private can't show posts or any things , and should make request !
+
+
+if i have public account and make the post is private , friends only show that post !!!
+
+
+
 all except the messages , google login , 

@@ -9,6 +9,8 @@ const UserCard: FC<{
   showStatus?: boolean;
   isFollowing?: boolean;
 }> = ({ account, showStatus = false, isFollowing = false }) => {
+
+  
   return (
     <Link href={`/profile/${account.id}`}>
       <div className="flex items-center gap-3 rounded-xl p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all duration-200 group cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-700">

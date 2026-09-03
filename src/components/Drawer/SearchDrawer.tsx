@@ -22,7 +22,7 @@ import PostCard from "../Cards/PostCard";
 import { Account } from "@/types/account.Types";
 
 interface SearchResponse {
-  users: Account[];
+  accounts: Account[];
   posts: Post[];
 }
 
@@ -61,7 +61,7 @@ const SearchDrawer: FC<{
 
         const data: SearchResponse = await res.json();
 
-        setUsers(data.users);
+        setUsers(data.accounts);
         setPosts(data.posts);
       } catch {
         // Handle error silently
@@ -140,7 +140,7 @@ const SearchDrawer: FC<{
                   </div>
                 )}
 
-              {!loading && users.length > 0 && (
+              {!loading && users?.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -151,7 +151,7 @@ const SearchDrawer: FC<{
                     </span>
                   </div>
                   <div className="space-y-1">
-                    {users.map((user) => (
+                    {users?.map((user) => (
                       <UserCard key={user?.id} account={user} />
                     ))}
                   </div>
