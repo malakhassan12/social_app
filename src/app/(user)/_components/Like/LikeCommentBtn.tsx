@@ -2,51 +2,79 @@
 
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {  useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { createLikeOnComment } from "@/actions/like/createLikeOnComment";
 import { LikeResponse } from "@/types/like.Types";
 import { toast } from "sonner";
+
+type LikeCommentBtnProps = {
+  commentId: string;
+  initialLikesCount: number;
+  initialLiked: boolean;
+};
+
+type OptimisticLikeState = {
+  liked: boolean;
+  likesCount: number;
+};
 
 const LikeCommentBtn = ({
   commentId,
   initialLikesCount,
   initialLiked,
-}: {
-  commentId: string;
-  initialLikesCount: number;
-  initialLiked: boolean;
-}) => {
+}: LikeCommentBtnProps) => {
   const [pending, startTransition] = useTransition();
 
+  const [optimisticLike, setOptimisticLike] =
+    useOptimistic<OptimisticLikeState>({
+      liked: initialLiked,
+      likesCount: initialLikesCount,
+    });
+
   const handleLike = () => {
+    const nextLiked = !optimisticLike.liked;
+
+    const nextLikesCount = nextLiked
+      ? optimisticLike.likesCount + 1
+      : optimisticLike.likesCount - 1;
+
+    // Update UI immediately
     startTransition(async () => {
-      const res = await createLikeOnComment(commentId) as LikeResponse;
+      setOptimisticLike({
+        liked: nextLiked,
+        likesCount: nextLikesCount,
+      });
+
+      const res = (await createLikeOnComment(commentId)) as LikeResponse;
 
       if (!res.success) {
         toast.error(res.errors?.message || "Something went wrong");
+
+        // Rollback
+        setOptimisticLike({
+          liked: optimisticLike.liked,
+          likesCount: optimisticLike.likesCount,
+        });
+
         return;
       }
 
-      toast.success(
-        res.liked ? "Comment liked ❤️" : "Comment unliked",
-      );
+      // Server is the source of truth.
+      // Sync with the actual server response.
+
+      toast.success(res.liked ? "Comment liked ❤️" : "Comment unliked");
     });
   };
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={handleLike}
-      disabled={pending}
-    >
+    <Button variant="ghost" size="sm" onClick={handleLike} disabled={pending}>
       <Heart
         className={`h-4 w-4 ${
-          initialLiked ? "fill-red-500 text-red-500" : ""
+          optimisticLike.liked ? "fill-red-500 text-red-500" : ""
         }`}
       />
 
-      <span>{initialLikesCount}</span>
+      <span>{optimisticLike.likesCount}</span>
     </Button>
   );
 };

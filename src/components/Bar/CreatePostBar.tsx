@@ -6,7 +6,7 @@ import CreatePostBtn from "../Buttons/CreatePostBtn";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import {
-  Image,
+  Image as ImageIcon,
   Smile,
   Video,
   Send,
@@ -166,7 +166,7 @@ const CreatePostBar : FC<{
                 aria-label="Add a photo"
                 type="button"
               >
-                <Image className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
+                <ImageIcon className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
                 
                 <span className="text-xs font-medium hidden sm:inline">
                   Photo

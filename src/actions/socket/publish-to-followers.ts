@@ -34,27 +34,42 @@ const publishToFollowers = async (
     receiverIds.add(follower.followerId);
   }
 
+  if (type === TypePublishSocket.POST && data?.post) {
+    const post = data.post;
+    // 1. إنشاء كل الإشعارات دفعة واحدة (batch insert) بدل loop
+    await prisma.notification.createMany({
+      data: [...receiverIds].map((receiverId: string) => ({
+        title: "New Post",
+        content: "published a post",
+        creatorId: accountId,
+        receiverId,
+        postId: post.id,
+        notificationType: NotificationType.PUBLISHED,
+      })),
+    });
+  }
+
   for (const receiverId of receiverIds) {
     if (type === TypePublishSocket.POST) {
-      if (data?.post) {
-        const notification: NOTIREQUEST = {
-          title: "New Post",
-          content: "published a post",
-          creatorId: accountId,
-          receiverId,
-          postId: data.post.id,
-          notificationType: NotificationType.PUBLISHED,
-        };
+      // if (data?.post) {
+      //   const notification: NOTIREQUEST = {
+      //     title: "New Post",
+      //     content: "published a post",
+      //     creatorId: accountId,
+      //     receiverId,
+      //     postId: data.post.id,
+      //     notificationType: NotificationType.PUBLISHED,
+      //   };
 
-        await createNotification(notification);
-      }
+      //   await createNotification(notification);
+      // }
 
       io.to(`account:${receiverId}`).emit("publish:post");
     }
 
     if (type === TypePublishSocket.COMMENT) {
       io.to(`account:${receiverId}`).emit("publish:comment");
-      console.log('Publish Comment')
+      console.log("Publish Comment");
     }
 
     if (type === TypePublishSocket.LIKE) {

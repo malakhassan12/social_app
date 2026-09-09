@@ -1,12 +1,9 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getAccountId } from "./getAccountId";
 
-const getLikePost = async (postId: string) => {
-  const accountId = (await getAccountId()) as string;
-
-   if (!accountId) {
+const getLikePost = async (postId: string, accountId: string) => {
+  if (!accountId) {
     return {
       success: false,
       errors: {

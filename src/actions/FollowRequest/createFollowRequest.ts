@@ -43,6 +43,7 @@ const createFollowRequest = async (receiverId: string): Promise<FormState> => {
       },
     },
   });
+  const io = getIo();
 
   // ==============================
   // PENDING → Cancel request
@@ -56,6 +57,7 @@ const createFollowRequest = async (receiverId: string): Promise<FormState> => {
     });
 
     revalidatePath("/explore");
+    io.to(`account:${receiverId}`).emit("publish:explore");
 
     return {
       success: true,
@@ -81,6 +83,8 @@ const createFollowRequest = async (receiverId: string): Promise<FormState> => {
         },
       }),
     ]);
+
+    io.to(`account:${receiverId}`).emit("publish:explore");
 
     revalidatePath("/explore");
 
@@ -113,16 +117,14 @@ const createFollowRequest = async (receiverId: string): Promise<FormState> => {
   });
 
   const notification: NOTIREQUEST = {
-    title: "New Follower",
-    content: "Someone started following you",
+    title: "Friendship request",
+    content: "wants to be friend with you",
     creatorId: accountId,
     receiverId,
     notificationType: NotificationType.FRIEND,
   };
 
   await createNotification(notification);
-
-  const io = getIo();
 
   io.to(`account:${receiverId}`).emit("publish:explore");
 

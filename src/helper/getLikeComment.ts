@@ -1,10 +1,8 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getAccountId } from "./getAccountId";
 
-const getLikeComment = async (commentId: string) => {
-  const accountId = (await getAccountId()) as string;
+const getLikeComment = async (commentId: string , accountId : string) => {
 
   if (!accountId) {
     return {

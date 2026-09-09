@@ -65,7 +65,7 @@ async function updatePost(
 
     await publishToFollowers(accountId, TypePublishSocket.POST);
 
-    revalidatePath(`/api/post`);
+    // revalidatePath(`/api/post`);
 
     return {
       success: true,

@@ -2,12 +2,17 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { socket } from "@/lib/socket/socket";
+import { getSocket } from "@/lib/socket/socket";
+// import { socket } from "@/lib/socket/socket";
 
 export default function PostsRealtime() {
   const router = useRouter();
 
   useEffect(() => {
+    const socket = getSocket();
+
+    socket.connect();
+
     const handlePostCreated = () => {
       console.log("📥 SOCKET EVENT RECEIVED");
 

@@ -5,17 +5,21 @@ import { Post } from "@/types/post.Types";
 import { getShare } from "@/helper/getShare";
 import { getLikePost } from "@/helper/getLikePost";
 import CommentBtn from "../Comment/CommentBtn";
+import { Account } from "@/types/account.Types";
 
 const SocialBtns = async ({
   post,
   showComment = true,
+  account 
 }: {
   post: Post;
   showComment?: boolean;
+  account : Account
 }) => {
-  const shared = await getShare(post?.id);
+  const shared = await getShare(post?.id , account?.id as string);
 
-  const liked = await getLikePost(post?.id);
+  const liked = await getLikePost(post?.id , account?.id as string);
+
   return (
     <div className="flex flex-col gap-4">
       <ButtonGroup>

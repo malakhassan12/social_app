@@ -67,11 +67,11 @@ const rejectFollowRequest = async (followerId: string): Promise<FormState> => {
     },
   });
   await createNotification({
-    title: "Connection Request Rejected",
+    title: "Friendship Request Rejected",
     content: "rejected your connection request",
     creatorId: accountId,
     receiverId: followerId,
-    notificationType: NotificationType.FOLLOW,
+    notificationType: NotificationType.FRIEND,
   });
 
   const io = getIo();

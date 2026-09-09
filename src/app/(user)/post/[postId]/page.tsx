@@ -9,6 +9,14 @@ import type { Metadata } from "next";
 import prisma from "@/lib/prisma";
 import { Suspense } from "react";
 import PostSkelton from "@/components/Skelton/PostSkelton";
+import { Account } from "@/types/account.Types";
+import getAccount from "@/helper/getAccount";
+import { getPost } from "@/helper/getPost";
+import { getComments } from "@/helper/getComments";
+import { notFound } from "next/navigation";
+import { Comment } from "@/types/comment.Types";
+import { Post } from "@/types/post.Types";
+import BackBtn from "@/components/Buttons/BackBtn";
 
 type Props = {
   params: Promise<{
@@ -35,45 +43,39 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 async function Page({ params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params;
-  const [postData, commentsData] = await Promise.all([
-    fetch(`${process.env.API_V1}/api/post/${postId}`).then(async (res) => {
-      if (!res.ok) {
-        const error = await res
-          .json()
-          .catch(() => ({ message: "Failed to fetch post" }));
-        throw new Error(error.message || `Failed to fetch post: ${res.status}`);
-      }
-      return res.json();
-    }),
-    fetch(`${process.env.API_V1}/api/comment/${postId}`).then(async (res) => {
-      if (!res.ok) {
-        const error = await res
-          .json()
-          .catch(() => ({ message: "Failed to fetch comments" }));
-        throw new Error(
-          error.message || `Failed to fetch comments: ${res.status}`,
-        );
-      }
-      return res.json();
-    }),
+  const [post, comments] = await Promise.all([
+    getPost(postId),
+    getComments(postId),
   ]);
-  const post = postData?.post;
-  const comments = commentsData?.comments || [];
+
+  if (post === null) {
+    notFound();
+  }
+
   const commentCount = comments.length;
+
+  const account = await getAccount();
+
   return (
     <Card className="bg-white dark:bg-[#1a1a2e] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800">
-        <PostHeader post={post} />
+      <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
+        <PostHeader post={post as unknown as Post} />
+
+        <BackBtn />
       </div>
 
       {/* Content */}
       <div className="p-4 space-y-4">
         {/* Post Content */}
-        <PostContent post={post} />
+        <PostContent post={post as unknown as Post} />
 
         {/* Social Actions */}
-        <SocialBtns post={post} showComment={false} />
+        <SocialBtns
+          post={post as unknown as Post}
+          showComment={false}
+          account={account as unknown as Account}
+        />
 
         {/* Comments Section */}
         <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800">
@@ -92,10 +94,16 @@ async function Page({ params }: { params: Promise<{ postId: string }> }) {
           </div>
 
           {/* Comments List */}
-          <CommentsContent comments={comments}  />
+          <CommentsContent
+            comments={comments as unknown as Comment[]}
+            accountId={account?.id as string}
+          />
 
           {/* Comment Input */}
-          <CommentInput postId={post?.id} />
+          <CommentInput
+            postId={post?.id}
+            account={account as unknown as Account}
+          />
         </div>
       </div>
     </Card>

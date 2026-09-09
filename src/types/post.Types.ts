@@ -1,3 +1,4 @@
+import { Account } from "./account.Types";
 import { LIKEPOST } from "./like.Types";
 
 interface Post {
@@ -10,16 +11,7 @@ interface Post {
   createdAt: string;
   updatedAt: string;
   likes: LIKEPOST[];
-  author: {
-    id: string;
-    email: string;
-    name: string;
-    country: string;
-    bio: string | null;
-    image: string | null;
-    website: string | null;
-    phone: string;
-  };
+  author: Account
 }
 
 export type { Post };

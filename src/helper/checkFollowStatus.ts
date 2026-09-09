@@ -1,7 +1,7 @@
-"use server"
+"use server";
 import prisma from "@/lib/prisma";
-import { getAccountId } from "./getAccountId";
 import { FormState } from "@/types/form.Types";
+import { getAccountId } from "./getAccountId";
 interface SuccessResponse extends FormState {
   status?: boolean;
   success: boolean;
@@ -11,9 +11,10 @@ type StatusRequestProp = SuccessResponse;
 
 const checkFollowStatus = async (
   followingId: string,
+  accountId?: string,
 ): Promise<StatusRequestProp> => {
-  const accountId = await getAccountId();
-  if (!accountId) {
+  const finalAccountId = accountId ?? (await getAccountId());
+  if (!finalAccountId) {
     return {
       success: false,
       errors: {
@@ -24,7 +25,7 @@ const checkFollowStatus = async (
 
   const followingExist = await prisma.follower.findFirst({
     where: {
-      followerId: accountId,
+      followerId: finalAccountId,
       followingId,
     },
   });

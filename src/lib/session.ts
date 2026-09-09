@@ -3,6 +3,13 @@
 import crypto from "crypto";
 
 import redis from "./redis";
+import {
+  getCachedSession,
+  getPendingSession,
+  setCachedSession,
+  setPendingSession,
+  deleteCachedSession,
+} from "./sessionCache";
 
 const EXPIRE_TIME = 60 * 60 * 24 * 7;
 
@@ -22,24 +29,32 @@ export async function createSession(userId: string, accountId: string) {
 
   return sessionId;
 }
+export async function getSession(sessionId: string) {
+  const cached = getCachedSession(sessionId);
+  if (cached) return cached;
 
-export async function getSession(sessionId: string): Promise<{
-  userId: string;
-  accountId: string;
-}> {
-  const session = await redis.get<{ userId: string; accountId: string }>(
-    `session:${sessionId}`,
-  );
+  const pendingPromise = getPendingSession(sessionId);
+  if (pendingPromise) return pendingPromise;
 
-  if (!session) {
-    throw new Error("Session not found");
-  }
+  const promise = (async () => {
+    const session = await redis.get<{ userId: string; accountId: string }>(
+      `session:${sessionId}`,
+    );
 
-  return session;
+    if (!session) {
+      throw new Error("Session not found");
+    }
+
+    setCachedSession(sessionId, session);
+    return session;
+  })();
+
+  setPendingSession(sessionId, promise);
+  return promise;
 }
-
 export async function deleteSession(sessionId: string) {
   await redis.del(`session:${sessionId}`);
+  deleteCachedSession(sessionId);
 }
 
 export async function createTempSession(userId: string, emailId: string) {

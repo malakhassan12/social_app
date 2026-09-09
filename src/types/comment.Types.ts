@@ -23,7 +23,7 @@ export type Comment = {
 
   content: string;
 
-  likes: Like[];
+  likes?: Like[];
 
   postId: string;
 

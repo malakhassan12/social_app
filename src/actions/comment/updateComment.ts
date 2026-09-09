@@ -37,6 +37,30 @@ const updateComment = async (comment: Comment, formData: FormData) => {
   }
 
   try {
+    const commentExist = await prisma.comment.findFirst({
+      where: {
+        id: comment.id,
+      },
+    });
+
+    if (!commentExist) {
+      return {
+        success: false,
+        errors: {
+          message: "Not exist Comment ",
+        },
+      };
+    }
+
+    if (commentExist.accountId !== accountId) {
+      return {
+        success: false,
+        errors: {
+          message: "Not authorize to delete that comment ",
+        },
+      };
+    }
+
     await prisma.comment.update({
       where: {
         id: comment.id,

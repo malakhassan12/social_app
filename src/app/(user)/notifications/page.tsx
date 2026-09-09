@@ -1,6 +1,5 @@
-
 import { Metadata } from "next";
-import { Suspense } from "react";
+import { FC, Suspense } from "react";
 import NotificationsContent from "./_components/NotificationContent";
 import NotificationsSkeleton from "@/components/Skelton/NotificationSkelton";
 
@@ -8,9 +7,11 @@ export const metadata: Metadata = {
   title: "Notifications page",
 };
 
-const Page = async () => {
- 
-
+const Page: FC<{
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}> = async ({ searchParams }) => {
   return (
     <div className="max-w-3xl mx-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
       {/* Header */}
@@ -23,7 +24,7 @@ const Page = async () => {
       </div>
 
       <Suspense fallback={<NotificationsSkeleton />}>
-         <NotificationsContent />
+        <NotificationsContent searchParams={searchParams} />
       </Suspense>
     </div>
   );

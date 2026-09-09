@@ -46,6 +46,7 @@ const getStatusFriendship = async (
     !existingRequest ||
     existingRequest.status === FollowRequestStatus.REJECTED
   ) {
+    
     return { status: FollowRequestEnum.NOT_EXIST, success: true };
   } else if (existingRequest.status == FollowRequestStatus.PENDING) {
     return { status: FollowRequestEnum.PENDING, success: true };

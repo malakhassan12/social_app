@@ -15,10 +15,10 @@ type StatusRequestProp = SuccessResponse;
 
 const getStatusOfRequest = async (
   receiverId: string,
+  accountId?: string,
 ): Promise<StatusRequestProp> => {
-  const accountId = await getAccountId();
-
-  if (!accountId) {
+  const finalAccountId = accountId ?? (await getAccountId());
+  if (!finalAccountId) {
     return {
       success: false,
       errors: {
@@ -27,20 +27,33 @@ const getStatusOfRequest = async (
     };
   }
 
+  console.log("receiverId", receiverId, "accountId", finalAccountId);
+
   // Check existing request
-  const existingRequest = await prisma.followRequest.findUnique({
+  const existingRequest = await prisma.followRequest.findFirst({
     where: {
-      requesterId_receiverId: {
-        requesterId: accountId,
-        receiverId,
-      },
+      OR: [
+        {
+          requesterId: finalAccountId,
+          receiverId,
+        },
+        {
+          requesterId: receiverId,
+          receiverId: finalAccountId,
+        },
+      ],
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
 
+  
   if (
     !existingRequest ||
     existingRequest.status === FollowRequestStatus.REJECTED
   ) {
+    console.log(existingRequest);
     return { status: FollowRequestEnum.NOT_EXIST, success: true };
   } else if (existingRequest.status == FollowRequestStatus.PENDING) {
     return { status: FollowRequestEnum.PENDING, success: true };

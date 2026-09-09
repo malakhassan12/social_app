@@ -22,7 +22,6 @@ export async function GET(
     );
   }
 
-    
   try {
     const post = await prisma.post.findUnique({
       where: {
@@ -32,9 +31,12 @@ export async function GET(
         author: {
           select: {
             id: true,
-            email: true,
+            email: {
+              select: { email: true },
+            },
             name: true,
             image: true,
+            username: true,
           },
         },
       },
@@ -43,8 +45,6 @@ export async function GET(
     return Response.json({
       post,
     });
-    
-  
   } catch (error) {
     console.log(error);
 

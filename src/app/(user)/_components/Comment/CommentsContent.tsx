@@ -5,10 +5,8 @@ import { getLikeComment } from "@/helper/getLikeComment";
 import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
 import CurdCommentBtn from "./CurdCommentBtn";
 import CommentRealTime from "./CommentRealTime";
-import { getAccountId } from "@/helper/getAccountId";
 
-const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
-  const accountId = await getAccountId();
+const CommentsContent = async ({ comments , accountId }: { comments: Comment[] , accountId : string }) => {
   return (
     <>
       <CommentRealTime />
@@ -19,7 +17,7 @@ const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
           </p>
         ) : (
           comments?.map(async (comment: Comment) => {
-            const Liked = await getLikeComment(comment?.id);
+            const Liked = await getLikeComment(comment?.id , accountId as string);
 
             return (
               <div
@@ -36,7 +34,7 @@ const CommentsContent = async ({ comments }: { comments: Comment[] }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {comment.author?.name || "Unknown"}
+                      {comment.author?.username || "Unknown"}
                     </p>
                     <span className="text-xs text-gray-400 dark:text-gray-500">
                       {getTime({ time: comment.createdAt })}

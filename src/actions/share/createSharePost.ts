@@ -62,7 +62,7 @@ const createSharePost = async (post: Post) => {
     if (accountId !== share.shareFromId) {
       const notification: NOTIREQUEST = {
         title: "New Share",
-        content: "Someone shared your post",
+        content: "shared your post",
         creatorId: accountId,
         receiverId: share.shareFromId,
         notificationType: NotificationType.SHARE,

@@ -20,6 +20,30 @@ const deleteComment = async (comment: Comment) => {
   }
 
   try {
+    const commentExist = await prisma.comment.findFirst({
+      where: {
+        id: comment.id,
+      },
+    });
+
+    if (!commentExist) {
+      return {
+        success: false,
+        errors: {
+          message: "Not exist Comment ",
+        },
+      };
+    }
+
+    if (commentExist.accountId !== accountId) {
+      return {
+        success: false,
+        errors: {
+          message: "Not authorize to delete that comment ",
+        },
+      };
+    }
+
     await prisma.comment.delete({
       where: { id: comment?.id },
     });

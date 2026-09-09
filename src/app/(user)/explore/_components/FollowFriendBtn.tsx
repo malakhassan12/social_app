@@ -3,8 +3,9 @@
 import { makeFollow } from "@/actions/Follow/makeFollow";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {  useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
+import { getButtonFollowStyles } from "@/utils/makeFollowsThemes";
 
 const FollowFriendBtn = ({
   followingId,
@@ -18,31 +19,38 @@ const FollowFriendBtn = ({
 
   const handleFollow = () => {
     startTransition(async () => {
-      const res = (await makeFollow(followingId)) ;
+      const res = (await makeFollow(followingId));
 
       if (res.success) {
-        toast.success('You are make follow successfully !');
+        toast.success(existFollow ? 'Unfollowed successfully!' : 'Followed successfully!');
         router.refresh();
       } else {
-        toast.error(res?.errors?.message);
+        toast.error(res?.errors?.message || 'Something went wrong');
       }
     });
   };
 
+  // Get button styles based on state
+
+
+  const styles = getButtonFollowStyles({pending , existFollow});
+
   return (
     <Button
-      disabled={pending }
+      disabled={pending}
       onClick={handleFollow}
-      className={`w-full mt-3 h-8 gap-1.5 rounded-full text-xs font-medium transition-all duration-300  disabled:opacity-50 disabled:cursor-not-allowed`}
+      size="sm"
+      className={`
+        group relative inline-flex items-center justify-center gap-1.5 
+        px-3 py-1.5 text-xs font-medium 
+        rounded-full transition-all duration-200 
+        whitespace-nowrap
+        ${styles.className}
+        ${pending ? "cursor-not-allowed" : ""}
+      `}
     >
-      {pending ? (
-        <>
-          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          <span>Loading...</span>
-        </>
-      ) : (
-        <>{existFollow ? "un-follow" : "Follow"}</>
-      )}
+      {styles.icon}
+      <span>{styles.text}</span>
     </Button>
   );
 };

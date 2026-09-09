@@ -35,45 +35,75 @@ app.prepare().then(() => {
   // Global Socket.IO Authentication
   // ========================================
 
+  // io.use(async (socket, next) => {
+  //   try {
+  //     // 1. Get Cookie header
+  //     const cookieHeader = socket.handshake.headers.cookie;
+
+  //     if (!cookieHeader) {
+  //       return next(new Error("Unauthorized"));
+  //     }
+
+  //     // 2. Parse cookies
+  //     const cookies = cookie.parseCookie(cookieHeader);
+
+  //     // 3. Get session ID
+  //     const sessionId = cookies.token;
+
+  //     if (!sessionId) {
+  //       return next(new Error("Unauthorized"));
+  //     }
+
+  //     // 4. Validate session
+  //     const { accountId } = await getSession(sessionId);
+
+  //     if (!accountId) {
+  //       return next(new Error("Unauthorized"));
+  //     }
+
+  //     // 5. Store authenticated user
+  //     socket.data.accountId = accountId;
+
+  //     // 6. Continue connection
+  //     next();
+  //   } catch (error) {
+  //     console.error("Socket authentication error:", error);
+
+  //     next(new Error("Unauthorized"));
+  //   }
+  // });
+
   io.use(async (socket, next) => {
     try {
-      // 1. Get Cookie header
       const cookieHeader = socket.handshake.headers.cookie;
 
       if (!cookieHeader) {
         return next(new Error("Unauthorized"));
       }
 
-      // 2. Parse cookies
       const cookies = cookie.parseCookie(cookieHeader);
-
-      // 3. Get session ID
       const sessionId = cookies.token;
 
       if (!sessionId) {
         return next(new Error("Unauthorized"));
       }
 
-      // 4. Validate session
       const { accountId } = await getSession(sessionId);
 
       if (!accountId) {
         return next(new Error("Unauthorized"));
       }
 
-      // 5. Store authenticated user
       socket.data.accountId = accountId;
-
-      // 6. Continue connection
       next();
     } catch (error) {
       console.error("Socket authentication error:", error);
-
+      // منع الـ client من محاولة إعادة الاتصال فورًا بشكل جامح
       next(new Error("Unauthorized"));
     }
   });
 
-    io.on("connection", (socket) => {
+  io.on("connection", (socket) => {
     const authenticatedAccountId = socket.data.accountId; // 👈 Extract verified ID
 
     console.log("🔥 SOCKET CONNECTED", {
@@ -85,7 +115,9 @@ app.prepare().then(() => {
     // 👈 ADD THIS LINE HERE: Auto-join the private room globally!
     if (authenticatedAccountId) {
       socket.join(`account:${authenticatedAccountId}`);
-      console.log(`🔌 Socket ${socket.id} joined room: account:${authenticatedAccountId}`);
+      console.log(
+        `🔌 Socket ${socket.id} joined room: account:${authenticatedAccountId}`,
+      );
     }
 
     socket.conn.on("upgrade", () => {
@@ -104,7 +136,6 @@ app.prepare().then(() => {
       });
     });
   });
-
 
   // ========================================
   // Namespaces

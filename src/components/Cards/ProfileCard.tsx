@@ -4,13 +4,15 @@ import { MapPin, Mail, Users, FileText, UserPlus } from "lucide-react";
 import getProfile from "@/helper/getProfile";
 
 const ProfileCard = async () => {
-  const { user, followers, followings, friends, posts } = await getProfile();
+  const { user, followersTotal, followingsTotal, friendsTotal, postsTotal } =
+    await getProfile();
 
-  const numOfFollowings = followings.length;
-  const numOfFollowers = followers.length;
-  const numOfPosts = posts.length;
-  const numOfRequests = friends?.length;
+  const numOfFollowings = followingsTotal;
+  const numOfFollowers = followersTotal;
+  const numOfPosts = postsTotal;
+  const numOfRequests = friendsTotal;
 
+  
   return (
     <Card className="w-full max-w-xs mx-auto shadow-md border border-gray-200 dark:border-gray-800 p-4">
       {/* Profile Info */}

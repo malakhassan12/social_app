@@ -8,7 +8,13 @@ export const metadata: Metadata = {
   title: "Home Page",
 };
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}) {
   return (
     <>
       <Suspense fallback={null}>
@@ -16,7 +22,7 @@ export default async function Home() {
       </Suspense>
       <br />
       <Suspense fallback={<PostsSkeleton />}>
-        <Posts />
+        <Posts searchParams={searchParams} />
       </Suspense>{" "}
     </>
   );

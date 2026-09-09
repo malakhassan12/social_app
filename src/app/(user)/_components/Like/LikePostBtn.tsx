@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LikeResponse } from "@/types/like.Types";
 import { Post } from "@/types/post.Types";
 import { Heart } from "lucide-react";
-import { useTransition,  } from "react";
+import { useOptimistic,  useTransition } from "react";
 import { toast } from "sonner";
 
 const LikePostBtn = ({
@@ -19,7 +19,21 @@ const LikePostBtn = ({
 }) => {
   const [pending, startTransition] = useTransition();
 
+  const [like, setLike] = useOptimistic(isLike);
+  const [likesCount, setLikesCount] = useOptimistic(likedCount);
+
   const handleLike = () => {
+    if (like) {
+      setLikesCount((prev) => {
+        return likedCount > 0 ? prev - 1 : 0;
+      });
+      setLike(false);
+    } else {
+      setLikesCount((prev) => {
+        return prev + 1;
+      });
+      setLike(true);
+    }
     startTransition(async () => {
       const res = (await createLikeOnPost(post.id)) as LikeResponse;
 
@@ -51,10 +65,10 @@ const LikePostBtn = ({
       "
     >
       <Heart
-        className={`h-4 w-4 ${isLike ? "fill-red-500 text-red-500" : ""}`}
+        className={`h-4 w-4 ${like ? "fill-red-500 text-red-500" : ""}`}
       />
 
-      <span className="text-xs font-medium">{likedCount}</span>
+      <span className="text-xs font-medium">{likesCount}</span>
     </Button>
   );
 };

@@ -27,7 +27,7 @@ const Page = () => {
       {/* Suggested Friends */}
 
       <Suspense fallback={<SuggestionsSkeleton />}>
-        <Suggestions rightPanel={true} />
+        <Suggestions  />
       </Suspense>
     </div>
   );

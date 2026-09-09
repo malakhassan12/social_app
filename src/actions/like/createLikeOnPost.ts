@@ -79,7 +79,7 @@ const createLikeOnPost = async (postId: string) => {
         receiverId: post.accountId, // the notification sent to the specific user
         notificationType: NotificationType.LIKE,
       };
-      createNotification(notification);
+      await createNotification(notification);
     }
     await publishToFollowers(post.accountId, TypePublishSocket.POST);
   }

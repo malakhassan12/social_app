@@ -33,9 +33,9 @@ export const sidebarData: SIDEBAR[] = [
     path: "/profile",
     icon: "User",
   },
-  // {
-  //   title: "Settings",
-  //   path: "/settings",
-  //   icon: "Settings",
-  // },
+  {
+    title: "Settings",
+    path: "/settings",
+    icon: "Settings",
+  },
 ];

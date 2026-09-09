@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/prisma";
 import { validateCreateComment } from "@/utils/commentValidation";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { NotificationType } from "@/generated/prisma/enums";
@@ -68,7 +67,7 @@ export async function createComment(postId: string, formData: FormData) {
     await publishToFollowers(post.accountId, TypePublishSocket.COMMENT);
   }
 
-  revalidatePath(`/api/comment/${postId}`);
+  // revalidatePath(`/api/comment/${postId}`);
   return {
     success: true,
   };

@@ -5,34 +5,60 @@ import { FC, useState } from "react";
 import CreateCommentBtn from "./CreateCommentBtn";
 import { createComment } from "@/actions/comment/createComment";
 import { toast } from "sonner";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Account } from "@/types/account.Types";
+import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
+import { Comment } from "@/types/comment.Types";
 
 const CommentInput: FC<{
   postId: string;
-}> = ({ postId }) => {
+  account: Account;
+  addOptimisticComment?: (comment: Comment) => void;
+}> = ({
+  postId,
+  account,
+  addOptimisticComment,
+}) => {
   const [content, setContent] = useState("");
 
   return (
     <div className="flex items-start gap-2 sm:gap-3">
       {/* Avatar */}
-      <Avatar className="h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 mt-1">
-        <AvatarFallback className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-xs font-medium">
-          ME
-        </AvatarFallback>
-      </Avatar>
+      <ProfileAvatar
+        name={account.username}
+        image={account.image}
+      />
 
       {/* Form */}
-
       <form
         action={async (formData) => {
           if (!content.trim()) {
             return;
           }
+
+          /*
+           * Create the optimistic comment BEFORE
+           * waiting for the server.
+           */
+          const optimisticComment: Comment = {
+            id: `temp-${Date.now()}`,
+            content: content.trim(),
+            createdAt: new Date().toISOString(),
+            author: account,
+            postId,
+            accountId: account.id,
+          };
+
+          addOptimisticComment?.(optimisticComment);
+
           const res = await createComment(postId, formData);
 
           if (res.success) {
-            toast.success("Comment created", { position: "top-center" });
+            toast.success("Comment created", {
+              position: "top-center",
+            });
+
             setContent("");
+
             return;
           }
 
@@ -40,9 +66,12 @@ const CommentInput: FC<{
             res?.errors &&
             typeof (res.errors as { message?: unknown }).message === "string"
           ) {
-            toast.error((res.errors as { message: string }).message, {
-              position: "top-center",
-            });
+            toast.error(
+              (res.errors as { message: string }).message,
+              {
+                position: "top-center",
+              }
+            );
           }
         }}
         className="flex-1 relative"
@@ -52,9 +81,10 @@ const CommentInput: FC<{
           name="content"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          className="w-full min-h-[40px] max-h-[60px] sm:min-h-[50px] sm:max-h-[80px] rounded-2xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all resize-none overflow-y-auto text-sm sm:text-base pr-12 py-2.5 sm:py-3 px-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500"
+          className="w-full min-h-10 max-h-15 sm:min-h-12.5 sm:max-h-20 rounded-2xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all resize-none overflow-y-auto text-sm sm:text-base pr-12 py-2.5 sm:py-3 px-4 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500"
         />
-        <CreateCommentBtn disabled={!content.trim()} />{" "}
+
+        <CreateCommentBtn disabled={!content.trim()} />
       </form>
     </div>
   );

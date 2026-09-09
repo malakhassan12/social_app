@@ -2,12 +2,17 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { socket } from "@/lib/socket/socket";
+import { getSocket } from "@/lib/socket/socket";
+// import { socket } from "@/lib/socket/socket";
 
 export default function CommentRealTime() {
   const router = useRouter();
 
   useEffect(() => {
+    const socket = getSocket();
+
+    socket.connect();
+
     console.log("🟢 CommentRealTime mounted");
     console.log("🟢 socket.connected:", socket.connected);
     console.log("🟢 socket.id:", socket.id);

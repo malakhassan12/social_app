@@ -1,26 +1,46 @@
 import { Post } from "@/types/post.Types";
+
 import PostCard from "./Post";
-import { cookies } from "next/headers";
+import getPosts from "@/helper/getPosts";
+import PostsPagination from "./PostsPagination";
 
-async function PostsSection() {
-  const cookieStore = await cookies();
-  const res = await fetch(`${process.env.API_V1}/api/post`, {
-    headers: {
-      Cookie: cookieStore.toString(),
-    },
-  });
+async function PostsSection({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}) {
+  const { page } = await searchParams;
 
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const posts = data?.posts;
+  const {
+    posts,
+    currentPage,
+    limit,
+    total,
+    totalPages,
+    hasNextPage,
+    hasPreviousPage,
+  } = await getPosts(page ?? "1");
 
   return (
     <>
-      {posts?.map((post: Post) => (
-        <PostCard key={post?.id} post={post} />
+      <PostsPagination
+        currentPage={currentPage}
+        limit={limit}
+        total={total}
+        totalPages={totalPages}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+      />
+
+      <br />
+
+      {posts.map((post) => (
+        <PostCard
+          key={post.id}
+          post={post as unknown as Post}
+        />
       ))}
     </>
   );

@@ -19,12 +19,36 @@ export const deletePost = async (postId: string) => {
   }
 
   try {
+    const post = await prisma.post.findFirst({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (!post) {
+      return {
+        success: false,
+        errors: {
+          message: "Not exist post ",
+        },
+      };
+    }
+
+    if (post.accountId !== accountId) {
+      return {
+        success: false,
+        errors: {
+          message: "Not authorize to delete that post ",
+        },
+      };
+    }
+
     await prisma.post.delete({
       where: {
         id: postId,
       },
     });
-    await publishToFollowers(accountId , TypePublishSocket.POST);
+    await publishToFollowers(accountId, TypePublishSocket.POST);
 
     revalidatePath(`/api/post`);
 

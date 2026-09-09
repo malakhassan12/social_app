@@ -83,13 +83,13 @@ const acceptFollowRequest = async (followerId: string) => {
   });
 
   const notification: NOTIREQUEST = {
-    title: "Accepted Follower",
-    content: `accepted your follow`,
+    title: "New Friend",
+    content: "became a friend with you",
     creatorId: accountId, // Iam make the action
     receiverId: followerId, //  the notification sended to the specific user
-    notificationType: NotificationType.FOLLOW,
+    notificationType: NotificationType.FRIEND,
   };
-  createNotification(notification);
+  await createNotification(notification);
 
 
   const io = getIo();

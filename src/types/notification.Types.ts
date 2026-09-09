@@ -16,17 +16,19 @@ type NOTIRESPONSE = {
   notificationType?: NotificationType;
 };
 
-
 interface Notification {
   id: string;
   notificationType: NotificationType;
 
   receiver: {
+    id: string;
     name: string;
     image: string | null;
   };
 
   creator: {
+    id: string;
+
     name: string;
     image: string | null;
   };
@@ -35,19 +37,15 @@ interface Notification {
   creatorId: string;
 
   content: string;
-    title  : string;
-
+  title: string;
 
   postId: string | null;
 
-  post? : Post
+  post?: Post;
 
   createdAt: Date;
 
   read: boolean;
 }
-
-
-
 
 export type { NOTIRESPONSE, NOTIREQUEST, Notification };

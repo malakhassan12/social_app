@@ -77,7 +77,7 @@ const Requests = async ({ rightPanel = false }: { rightPanel?: boolean }) => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 justify-center">
                   <AcceptFollowBtn followerId={follow.requester?.id} />
                   <RejectFollowBtn followerId={follow.requester?.id} />
                 </div>

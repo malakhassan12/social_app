@@ -37,11 +37,92 @@ I will make
 
 
 
-When an account private can't show posts or any things , and should make request !
+(True)-- When an account private can't show posts or any things , and should make request !
+
+(True)-- When account is private can't any one except the friends show the profile.
 
 
-if i have public account and make the post is private , friends only show that post !!!
 
 
 
-all except the messages , google login , 
+
+
+Pagination 
+
+
+all except the messages , google login , Settings
+
+
+
+Settings 
+   - Change type of the account
+   - Lock Make Comments  / or on one post
+   - Allow Sharing  / or on one post
+   - Switch between accounts
+   - Session
+   - AccountStatus
+   -  | Setting       | Based on schema   |ملاحظات                |
+      | Username      | ✅               | `Account.username`   |
+      | Name          | ✅               | `Account.name`       |
+      | Bio           | ✅               | `Account.bio`        |
+      | Profile image | ✅               | `Account.image`      |
+      | Website       | ✅               | `Account.website`    |
+      | Country       | ✅               | `Account.country`    |
+      | Email         | ✅               | `UserEmail.email`    |
+      | Phone         | ✅               | `User.phone`         |
+      | Password      | ✅               | `UserEmail.password` |
+     
+    - الـ Block بيأثر على إيه؟
+
+      ودي نقطة architecture مهمة جدًا.
+
+      لو:
+
+      Malak blocks Ahmed
+
+      غالبًا Ahmed:
+
+      مايشوفش profile Malak
+      مايبعتش لها messages
+      مايتفاعلش مع posts حسب rules بتاعتك
+      ممكن ما يظهرش في search
+      ممكن تمنع follow
+      ممكن تلغي existing follow relationship
+
+      يعني Block مش مجرد Setting.
+
+      هو business rule بيأثر على queries كتير.
+
+
+Settings
+│
+├── Account
+│   ├── Change account type
+│   ├── Username
+│   ├── Name
+│   ├── Bio
+│   ├── Profile image
+│   ├── Website
+│   ├── Country
+│   ├── Email
+│   ├── Phone
+│   └── Password
+│
+├── Privacy
+│   ├── Account type: PUBLIC / PRIVATE
+│   ├── Allow comments
+│   └── Allow sharing
+│
+├── Security
+│   └── Sessions
+│
+├── Account Status
+│   ├── ACTIVE
+│   ├── DEACTIVATED
+│   └── SUSPENDED
+│
+├── Connections
+│   └── Block
+│
+└── Accounts
+    └── Switch account

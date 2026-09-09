@@ -102,7 +102,7 @@ const makeFollow = async (followingId: string): Promise<FormState> => {
   // 8️⃣ Create notification
   const notification: NOTIREQUEST = {
     title: "New Follower",
-    content: "Someone started following you",
+    content: "started following you",
     creatorId: accountId,
     receiverId: followingId,
     notificationType: NotificationType.FOLLOW,

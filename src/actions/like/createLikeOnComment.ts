@@ -88,7 +88,7 @@ const createLikeOnComment = async (commentId: string) => {
       if (accountId !== comment.accountId) {
         const notification: NOTIREQUEST = {
           title: "New Like",
-          content: `Someone liked your comment`,
+          content: `liked your comment`,
           creatorId: accountId,
           receiverId: comment.accountId,
           notificationType: NotificationType.LIKE,

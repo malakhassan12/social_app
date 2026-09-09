@@ -22,20 +22,19 @@ const AddFriendBtn: FC<AddFriendProp> = ({ friendShipStatus, followingId }) => {
       const res = await createFollowRequest(followingId);
 
       if (res.success) {
-        // Show appropriate toast message based on previous status
         const message =
           friendShipStatus === FollowRequestEnum.NOT_EXIST
             ? "Request sent successfully"
-            : "Unfollowed successfully";
+            : "Un-friendship successfully";
         toast.success(message);
-        router.refresh(); // refresh to get the new status from server
+        router.refresh();
       } else {
         toast.error(res?.errors?.message || "Something went wrong");
       }
     });
   };
 
-  // Determine style, icon, text based on current status and pending
+  // Get status info using utility functions
   const buttonStyle = getButtonStyle({ pending, status: friendShipStatus });
   const icon = getIcon({ pending, status: friendShipStatus });
   const text = getText({ pending, status: friendShipStatus });
@@ -44,15 +43,14 @@ const AddFriendBtn: FC<AddFriendProp> = ({ friendShipStatus, followingId }) => {
     <Button
       onClick={handleRequestFollow}
       disabled={pending}
-      className={`
-    px-2 sm:px-3 py-1 sm:py-1.5 
-    text-[10px] sm:text-xs font-medium 
-    rounded-full transition-all duration-200 
-    ${buttonStyle}
-  `}
+      size="sm"
+      className={`${buttonStyle} w-fit`}
     >
-      {icon && <span className="mr-1">{icon}</span>}
-      <span className="p-1">{text}</span>
+      <div className="flex items-center gap-2">
+        {icon && <span className="shrink-0">{icon}</span>}
+
+        <span className="whitespace-nowrap">{text}</span>
+      </div>
     </Button>
   );
 };

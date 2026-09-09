@@ -1,10 +1,8 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getAccountId } from "./getAccountId";
 
-const getShare = async (postId: string) => {
-  const accountId = (await getAccountId()) as string;
+const getShare = async (postId: string , accountId : string) => {
 
   if (!accountId) {
     return {

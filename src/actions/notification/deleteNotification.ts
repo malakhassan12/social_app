@@ -17,6 +17,29 @@ const deleteNoti = async (notificationId: string) => {
   }
 
   try {
+    const noti = await prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+      },
+    });
+
+    if (!noti) {
+      return {
+        success: false,
+        errors: {
+          message: "Not exist Notification to delete ",
+        },
+      };
+    }
+
+    if (noti.receiverId !== accountId) {
+      return {
+        success: false,
+        errors: {
+          message: "Not authorize to delete that notification ",
+        },
+      };
+    }
     await prisma.notification.delete({
       where: { id: notificationId },
     });

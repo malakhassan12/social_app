@@ -4,7 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import Nav from "@/components/Nav/Nav";
 import { SimpleFooter } from "@/components/Footer/Footer";
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import RightPanelSkelton from "@/components/Skelton/RightPanelSkelton";
 import ClientSidebar from "@/components/ui/ClientSidebar";
 
@@ -36,10 +36,11 @@ const layout = ({
             <SidebarTrigger />
           </Nav>
 
-          <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+          <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 mt-10">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] xl:grid-cols-[1fr_240px] 2xl:grid-cols-[1fr_280px] gap-6 max-w-7xl mx-auto">
               {" "}
               {/* Main Content */}
+             
               <div className="min-w-0">{children}</div>
               {/* Right Panel */}
               <aside className="hidden lg:block">

@@ -7,15 +7,15 @@ import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { FormState } from "@/types/form.Types";
 import { Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { toast } from "sonner";
 // import { socket } from "@/lib/socket/socket";
 
-const initialState: FormState = {
+const initialState = {
   errors: {},
+  success: false,
 };
 
 const CreatePostForm = () => {
@@ -38,7 +38,7 @@ const CreatePostForm = () => {
       toast.success("Post created successfully!", { position: "top-center" });
 
       // socket.emit('post:created')
-      
+
       router.push("/");
     }
   }, [state, router]);
