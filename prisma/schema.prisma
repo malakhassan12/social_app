@@ -19,6 +19,8 @@ model User {
 
   emails    UserEmail[]
 
+  sessions Session[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -55,12 +57,20 @@ enum AccountType {
   PUBLIC
 }
 
+enum AccountStatus {
+  ACTIVE
+  DEACTIVATED
+  SUSPENDED
+}
+
 model Account {
   id String @id @default(cuid())
 
   // Owner
   emailId String
   email UserEmail @relation(fields: [emailId],references: [id], onDelete: Cascade)
+
+  sessions Session[]
 
   // Profile
   username String @unique
@@ -70,8 +80,17 @@ model Account {
   website  String?
   country  String
 
+  status AccountStatus @default(ACTIVE)
+
+
   // Privacy
   type AccountType @default(PUBLIC)
+
+  isOpenMessages Boolean @default(true) 
+
+  isOpenGroup Boolean @default(true) 
+
+  isOpenComments  Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,6 +131,8 @@ model Account {
   conversationParticipants ConversationParticipant[]
   messages                 Message[]
 
+  messageReaction MessageReaction[]
+
   // Message reads
   messageReads MessageRead[]
 
@@ -124,9 +145,9 @@ model Account {
 // ============================================================
 // FOLLOWER
 // ============================================================
-// Malak follows Ahmed
-// followerId     followingId
-// Malak          Ahmed
+  // Malak follows Ahmed
+  // followerId     followingId
+  // Malak          Ahmed
 
 model Follower {
   id String @id @default(cuid())
@@ -198,6 +219,9 @@ model Post {
   // from a private account.
   isPrivate Boolean @default(false)
 
+
+  isOpenComments Boolean @default(true)
+
   accountId String
 
   author Account @relation( fields: [accountId],references: [id],onDelete: Cascade)
@@ -249,6 +273,11 @@ model Comment {
   id String @id @default(cuid())
 
   content String @db.Text
+
+  isRemoved Boolean @default(false)
+
+  removedAt DateTime?
+
 
   accountId String
   postId    String
@@ -302,6 +331,9 @@ model Share {
   shareToId   String
   postId      String
 
+  isOpen Boolean @default(false) 
+
+
   shareFrom Account @relation("ShareFrom",fields: [shareFromId],references: [id],onDelete: Cascade)
 
   shareTo Account @relation("ShareTo",fields: [shareToId],references: [id],onDelete: Cascade)
@@ -352,12 +384,7 @@ model Notification {
 
   createdAt DateTime @default(now())
 
-  // Important for notification inbox queries:
-  //
-  // SELECT notifications
-  // WHERE receiverId = ?
-  // ORDER BY createdAt DESC
-  //
+
   @@index([receiverId, createdAt])
 
   @@index([receiverId, read, createdAt])
@@ -370,8 +397,29 @@ model Notification {
 // CONVERSATION
 // ============================================================
 
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
 model Conversation {
   id String @id @default(cuid())
+
+  name String? 
+
+  ownerId String?
+
+  image String?
+  
+  type ConversationType @default(DIRECT)
+
+  isOpen  Boolean @default(true) //  By admin only can make that 
+
+  isRemoved Boolean @default(false)
+
+  removedAt DateTime?
+
+  isOpenAddition  Boolean @default(true) //  By admin only can make that and in type Group
 
   participants ConversationParticipant[]
   messages     Message[]
@@ -385,6 +433,11 @@ model Conversation {
 // CONVERSATION PARTICIPANT
 // ============================================================
 
+enum ConversationParticipantType {
+  REMOVED
+  EXIST
+}
+
 model ConversationParticipant {
   id String @id @default(cuid())
 
@@ -396,6 +449,10 @@ model ConversationParticipant {
   account Account @relation(fields: [accountId],references: [id],onDelete: Cascade)
 
   joinedAt DateTime @default(now())
+
+  isAdmin Boolean @default(false)
+
+  type ConversationParticipantType @default(EXIST)
 
   // The same account cannot join the same conversation twice.
   @@unique([conversationId, accountId])
@@ -413,8 +470,16 @@ model Message {
 
   content String @db.Text
 
+  image String?
+
   senderId       String
   conversationId String
+
+  // Reply
+  replyToMessageId String?
+  replyToMessage   Message? @relation("MessageReplies",fields: [replyToMessageId],references: [id],onDelete: SetNull)
+
+  replies Message[] @relation("MessageReplies")
 
   sender Account @relation(fields: [senderId],references: [id],onDelete: Cascade)
 
@@ -424,9 +489,44 @@ model Message {
   updatedAt DateTime @updatedAt
 
   messageReads MessageRead[]
+  messageReactions MessageReaction[]
 
   @@index([conversationId, createdAt])
   @@index([senderId])
+  @@index([replyToMessageId])
+}
+
+enum MessageReactionType {
+  LIKE
+  LOVE
+  LAUGH
+  WOW
+  SAD
+  ANGRY
+  CELEBRATE
+}
+
+model MessageReaction {
+  id String @id @default(cuid())
+
+  accountId String
+  messageId String
+
+  isLiked Boolean @default(false)
+
+  type MessageReactionType
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade )
+
+  message Message @relation(fields: [messageId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // One reaction of one type per account per message
+  @@unique([accountId, messageId])
+  
+  @@index([messageId])
+  @@index([accountId])
 }
 
 
@@ -450,4 +550,32 @@ model MessageRead {
   @@unique([messageId, accountId])
 
   @@index([accountId])
+}
+
+
+// ============================================================
+// SESSION
+// ============================================================
+
+model Session {
+  id String @id @default(cuid())
+
+  userId String
+  accountId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  userAgent String?
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  expiresAt DateTime
+
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([expiresAt])
 }

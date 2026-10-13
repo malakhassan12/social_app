@@ -3,20 +3,19 @@
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 
 export async function uploadAvatar(formData: FormData) {
-    const accountId = await getAccountId();
-  
-    if (!accountId) {
-      return {
-        success: false,
-        errors: {
-          message: "Unauthorized",
-        },
-      };
-    }
-  
+  const accountId = await getAccountId();
+
+  if (!accountId) {
+    return {
+      success: false,
+      errors: {
+        message: "Unauthorized",
+      },
+    };
+  }
 
   const image = formData.get("image") as File | null;
 

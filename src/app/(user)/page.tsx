@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import PostsSkeleton from "@/components/Skelton/PostsSkeleton";
 import Posts from "./_components/Post/Posts";
 import CreatePostBarContainer from "./_components/Post/CreatePostBarContainer";
+import CreatePostBarSkeleton from "@/components/Skelton/CreatePostBarSkeleton";
 
 export const metadata: Metadata = {
   title: "Home Page",
@@ -17,13 +18,13 @@ export default async function Home({
 }) {
   return (
     <>
-      <Suspense fallback={null}>
+      <Suspense fallback={<CreatePostBarSkeleton />}>
         <CreatePostBarContainer />
       </Suspense>
-      <br />
+      <div className="h-4" aria-hidden="true" />
       <Suspense fallback={<PostsSkeleton />}>
         <Posts searchParams={searchParams} />
-      </Suspense>{" "}
+      </Suspense>
     </>
   );
 }

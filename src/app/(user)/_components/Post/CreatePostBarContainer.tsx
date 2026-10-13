@@ -1,5 +1,5 @@
-import { getAccountId } from "@/helper/getAccountId";
-import getAccount from "@/helper/getAccount";
+import { getAccountId } from "@/helper/account/getAccountId";
+import getAccount from "@/helper/account/getAccount";
 import CreatePostBar from "@/components/Bar/CreatePostBar";
 
 export default async function CreatePostBarContainer() {

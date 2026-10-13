@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import ProfileAvatar from "../Avatar/ProfileAvatar";
 import { MapPin, Mail, Users, FileText, UserPlus } from "lucide-react";
-import getProfile from "@/helper/getProfile";
+import getProfile from "@/helper/profile/getProfile";
 
 const ProfileCard = async () => {
   const { user, followersTotal, followingsTotal, friendsTotal, postsTotal } =
@@ -12,7 +12,6 @@ const ProfileCard = async () => {
   const numOfPosts = postsTotal;
   const numOfRequests = friendsTotal;
 
-  
   return (
     <Card className="w-full max-w-xs mx-auto shadow-md border border-gray-200 dark:border-gray-800 p-4">
       {/* Profile Info */}
@@ -20,7 +19,7 @@ const ProfileCard = async () => {
         <ProfileAvatar name={user?.name} image={user?.image} />
         <div className="flex-1 min-w-0">
           <h2 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-            {user?.name || "User"}
+            {user?.username || "User"}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate flex items-center gap-0.5">
             <Mail className="h-3 w-3 shrink-0" />

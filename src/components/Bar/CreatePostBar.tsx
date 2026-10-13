@@ -1,6 +1,6 @@
 "use client";
 
-import Form from 'next/form'
+import Form from "next/form";
 
 import CreatePostBtn from "../Buttons/CreatePostBtn";
 import { Button } from "../ui/button";
@@ -22,14 +22,14 @@ import { Label } from "../ui/label";
 import { createPost } from "@/actions/posts/createPost";
 import { toast } from "sonner";
 import { useTransition, useState, useEffect, useRef, FC } from "react";
-import isAccountPrivate from "@/helper/isAccountPrivate";
+import isAccountPrivate from "@/helper/account/isAccountPrivate";
 import { CreatePostActionState } from "@/lib/schema/Create-post.schema";
-import ProfileAvatar from '../Avatar/ProfileAvatar';
+import ProfileAvatar from "../Avatar/ProfileAvatar";
 
-const CreatePostBar : FC<{
-  userName : string , 
-  image : string
-}> = ({userName , image}) => {
+const CreatePostBar: FC<{
+  userName: string;
+  image: string;
+}> = ({ userName, image }) => {
   const [pending, startTransition] = useTransition();
   const [isPrivate, setIsPrivate] = useState(false);
   const [isPrivateAccount, setIsPrivateAccount] = useState(false);
@@ -90,19 +90,19 @@ const CreatePostBar : FC<{
   const isOverLimit = charCount > maxChars;
 
   return (
-    <Card className="border-0 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-2xl overflow-hidden">
+    <Card className="min-h-88 border-0 shadow-xl transition-all duration-300 overflow-hidden rounded-2xl sm:min-h-76 hover:shadow-2xl">
       <CardContent className="p-0">
         <Form action={submit} ref={formRef}>
           {/* Header */}
           <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-gray-100 dark:border-gray-800">
             <div className="flex items-center gap-3">
-             <ProfileAvatar name={userName} image={image}/>
+              <ProfileAvatar name={userName} image={image} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                   Create Post
                 </p>
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                  <Globe className="h-3 w-3" />
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                  <Globe aria-hidden="true" className="h-3 w-3" />
                   <span>Public</span>
                 </div>
               </div>
@@ -110,9 +110,13 @@ const CreatePostBar : FC<{
                 type="button"
                 variant="ghost"
                 size="sm"
+                aria-label="More post tools"
                 className="rounded-full h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
-                <Sparkles className="h-4 w-4 text-gray-400" />
+                <Sparkles
+                  aria-hidden="true"
+                  className="h-4 w-4 text-gray-400"
+                />
               </Button>
             </div>
           </div>
@@ -122,18 +126,7 @@ const CreatePostBar : FC<{
             <Textarea
               ref={textareaRef}
               placeholder="What's on your mind?..."
-              className={`flex-1 h-20 max-h-20 sm:h-15 sm:max-h-15 rounded-xl 
-            border-gray-200 dark:border-gray-700 
-            bg-gray-50 dark:bg-gray-900/50 
-            focus:ring-2 focus:ring-green-400 focus:border-transparent 
-            transition-all resize-none overflow-y-auto 
-            text-sm sm:text-base 
-            scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 
-            scrollbar-track-transparent hover:scrollbar-thumb-gray-500 
-            dark:hover:scrollbar-thumb-gray-500
-            ${isOverLimit ? "border-red-500 dark:border-red-500 focus:ring-red-400" : ""}
-            ${!isOverLimit && charCount > 0 ? "border-green-500 dark:border-green-500" : ""}`}
-              autoFocus
+              className={`flex-1 h-20 max-h-20 sm:h-15 sm:max-h-15 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 focus:ring-2 focus:ring-green-400 focus:border-transparent transition-all resize-none overflow-y-auto text-sm sm:text-base scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent hover:scrollbar-thumb-gray-500 dark:hover:scrollbar-thumb-gray-500${isOverLimit ? "border-red-500 dark:border-red-500 focus:ring-red-400" : ""}${!isOverLimit && charCount > 0 ? "border-green-500 dark:border-green-500" : ""}`}
               name="desc"
               onChange={handleTextChange}
             />
@@ -148,7 +141,7 @@ const CreatePostBar : FC<{
                     ? "text-red-500"
                     : isNearLimit
                       ? "text-yellow-500"
-                      : "text-gray-400 dark:text-gray-500"
+                      : "text-gray-600 dark:text-gray-300"
                 }`}
               >
                 {charCount} / {maxChars}
@@ -167,7 +160,7 @@ const CreatePostBar : FC<{
                 type="button"
               >
                 <ImageIcon className="h-4 w-4 sm:mr-1.5" aria-hidden="true" />
-                
+
                 <span className="text-xs font-medium hidden sm:inline">
                   Photo
                 </span>
@@ -177,9 +170,10 @@ const CreatePostBar : FC<{
                 variant="ghost"
                 size="sm"
                 className="rounded-full text-gray-500 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 px-2 sm:px-3"
+                aria-label="Add a video"
                 type="button"
               >
-                <Video className="h-4 w-4 sm:mr-1.5" />
+                <Video aria-hidden="true" className="h-4 w-4 sm:mr-1.5" />
                 <span className="text-xs font-medium hidden sm:inline">
                   Video
                 </span>
@@ -189,9 +183,10 @@ const CreatePostBar : FC<{
                 variant="ghost"
                 size="sm"
                 className="rounded-full text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 px-2 sm:px-3"
+                aria-label="Add a feeling"
                 type="button"
               >
-                <Smile className="h-4 w-4 sm:mr-1.5" />
+                <Smile aria-hidden="true" className="h-4 w-4 sm:mr-1.5" />
                 <span className="text-xs font-medium hidden sm:inline">
                   Feeling
                 </span>
@@ -230,7 +225,10 @@ const CreatePostBar : FC<{
 
               {!isPrivateAccount && (
                 <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800/50 px-3 py-1.5 rounded-full">
-                  <Users className="h-3.5 w-3.5 text-gray-400" />
+                  <Users
+                    aria-hidden="true"
+                    className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400"
+                  />
                   <Label
                     htmlFor="private-switch"
                     className="text-sm text-gray-600 dark:text-gray-400 cursor-pointer"

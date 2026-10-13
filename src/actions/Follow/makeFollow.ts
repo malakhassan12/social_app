@@ -1,7 +1,7 @@
 "use server";
 
 import { AccountType, NotificationType } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { FormState } from "@/types/form.Types";
 import { revalidatePath } from "next/cache";

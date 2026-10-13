@@ -2,7 +2,7 @@ import { FC } from "react";
 import AccountCard from "./AccountCard";
 import { Friend } from "@/types/friend.Types";
 import FriendsContent from "./FriendsContent";
-import getFriends from "@/helper/getFriends";
+import getFriends from "@/helper/friend/getFriends";
 
 const FriendsSection: FC<{
   profileId?: string | undefined;

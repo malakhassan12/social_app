@@ -1,12 +1,10 @@
 import { ModeToggle } from "./ModeToggleBtn";
 import NotificationsBtn from "./NotificationsBtn";
 import ProfileBtn from "./ProfileBtn";
-import getAccount from "@/helper/getAccount";
+import getAccount from "@/helper/account/getAccount";
 import { Account } from "@/types/account.Types";
 
 const NavBtns = async () => {
-  
-
   const account = await getAccount();
 
   return (

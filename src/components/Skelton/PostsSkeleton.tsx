@@ -1,10 +1,15 @@
-import PostSkelton from "./PostSkelton";
+"use client";
 
-const PostsSkeleton = () => {
+import PostSkeleton from "./PostSkelton";
+
+const PostsSkeleton = ({ count = 3 }: { count?: number }) => {
   return (
-    <div className="space-y-4 max-w-2xl mx-auto">
-      {[1, 2, 3].map((index) => (
-        <PostSkelton key={index} />
+    <div aria-hidden="true" role="status" aria-live="polite">
+      <span className="sr-only">Loading posts…</span>
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="px-4 py-3">
+          <PostSkeleton />
+        </div>
       ))}
     </div>
   );

@@ -98,8 +98,7 @@ import { AccountType } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
 import { FormState } from "@/types/form.Types";
-import { revalidatePath } from "next/cache";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import publishToFollowers from "../socket/publish-to-followers";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
 import { Post } from "@/types/post.Types";
@@ -107,7 +106,7 @@ import {
   CreatePostActionState,
   createPostSchema,
 } from "@/lib/schema/Create-post.schema";
-import getAccount from "@/helper/getAccount";
+import getAccount from "@/helper/account/getAccount";
 
 export async function createPost(
   prevState: FormState,
@@ -173,13 +172,11 @@ export async function createPost(
     },
   });
 
-  revalidatePath("/");
-
   await publishToFollowers(accountId, TypePublishSocket.POST, {
     post: post as unknown as Post,
   });
 
   return {
-    success: true,    
+    success: true,
   };
 }

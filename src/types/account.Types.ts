@@ -1,14 +1,13 @@
-
-import { AccountType } from "@/generated/prisma/enums";
+import { AccountStatus, AccountType } from "@/generated/prisma/enums";
 
 export type Account = {
   id: string;
 
   // Owner
   emailId: string;
-  email : {
-    email : string
-  }
+  email: {
+    email: string;
+  };
 
   // Profile
   username: string;
@@ -21,5 +20,9 @@ export type Account = {
   // Privacy
   type: AccountType;
 
-};
+  status :AccountStatus
 
+  isOpenGroup?: boolean;
+  isOpenMessages?: boolean;
+  isOpenComments? : boolean
+};

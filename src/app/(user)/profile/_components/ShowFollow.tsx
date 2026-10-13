@@ -4,7 +4,7 @@ import ProfileCard from "./ProfileCard";
 import FollowersSection from "./FollowersSection";
 import FollowingsSection from "./FollowingsSection";
 import FriendsSection from "./FriendsSection";
-import getAccount from "@/helper/getAccount";
+import getAccount from "@/helper/account/getAccount";
 
 const ShowFollow = async ({
   profileId,

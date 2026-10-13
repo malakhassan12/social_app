@@ -10,8 +10,18 @@ interface Post {
   accountId: string;
   createdAt: string;
   updatedAt: string;
-  likes: LIKEPOST[];
-  author: Account
+  likes?: LIKEPOST[];
+  author: Account;
+  isOpenComments: boolean;
+  isLiked?: boolean;
+  isShared?: boolean;
+  sharedCount?: number;
+  _count: {
+    comments: number;
+
+    likes: number;
+  };
+  type?: "POST" | "SHARE";
 }
 
 export type { Post };

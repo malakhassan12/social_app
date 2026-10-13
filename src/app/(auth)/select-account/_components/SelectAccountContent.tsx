@@ -7,8 +7,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SelectAccountForm from "./SelectAccountForm";
-import getAccounts from "@/helper/getAccounts";
-import getTempSelectAccount from "@/helper/getTempSelectAccount";
+import getAllAccounts from "@/helper/account/getAllAccounts";
+import getTempSelectAccount from "@/helper/account/getTempSelectAccount";
+import { Account } from "@/types/account.Types";
 
 const SelectAccountContent = async () => {
   const tempSelectAccount = await getTempSelectAccount();
@@ -35,7 +36,7 @@ const SelectAccountContent = async () => {
     );
   }
 
-  const accounts = await getAccounts(emailId);
+  const accounts = await getAllAccounts(emailId);
 
   // If no accounts (should not happen), show a message
   if (accounts.length === 0) {
@@ -71,7 +72,7 @@ const SelectAccountContent = async () => {
       <CardContent className="space-y-4">
         {accounts.map((account) => (
           <SelectAccountForm
-            account={account}
+            account={account as Account}
             key={account.id}
             userId={userId}
           />

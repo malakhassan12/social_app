@@ -8,7 +8,7 @@ import {
   FollowRequestStatus,
   NotificationType,
 } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import { getIo } from "@/lib/socket/getIo";
 
 const acceptFollowRequest = async (followerId: string) => {
@@ -90,7 +90,6 @@ const acceptFollowRequest = async (followerId: string) => {
     notificationType: NotificationType.FRIEND,
   };
   await createNotification(notification);
-
 
   const io = getIo();
   io.to(`account:${followerId}`).emit("publish:explore");

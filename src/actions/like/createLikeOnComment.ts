@@ -2,11 +2,10 @@
 
 import prisma from "@/lib/prisma";
 import { LikeResponse } from "@/types/like.Types";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
 import { NotificationType } from "@/generated/prisma/enums";
 import { NOTIREQUEST } from "@/types/notification.Types";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import publishToFollowers from "../socket/publish-to-followers";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
 
@@ -56,6 +55,8 @@ const createLikeOnComment = async (commentId: string) => {
     };
   }
 
+  let liked: boolean;
+
   if (like) {
     await prisma.commentLike.delete({
       where: {
@@ -66,8 +67,7 @@ const createLikeOnComment = async (commentId: string) => {
       },
     });
 
-    await publishToFollowers(comment.post.accountId, TypePublishSocket.COMMENT);
-
+    liked = false;
     res = {
       success: true,
       liked: false,
@@ -79,6 +79,7 @@ const createLikeOnComment = async (commentId: string) => {
         commentId,
       },
     });
+    liked = true;
     res = {
       success: true,
       liked: true,
@@ -96,14 +97,26 @@ const createLikeOnComment = async (commentId: string) => {
 
         await createNotification(notification);
       }
-      await publishToFollowers(
-        comment.post.accountId,
-        TypePublishSocket.COMMENT,
-      );
     }
   }
 
-  revalidatePath("/");
+  const likesCount = await prisma.commentLike.count({
+    where: { commentId },
+  });
+
+  await publishToFollowers(
+    comment.post.accountId,
+    TypePublishSocket.COMMENT_LIKE,
+    {
+      commentLike: {
+        commentId,
+        accountId,
+        commentOwnerId: comment.accountId,
+        liked,
+        likesCount,
+      },
+    },
+  );
 
   return res;
 };

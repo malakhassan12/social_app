@@ -77,6 +77,8 @@ const SharePostBtn = ({
       variant="ghost"
       onClick={handleShare}
       disabled={pending}
+      aria-label={share ? "Remove share" : "Share post"}
+      aria-pressed={share}
       size="sm"
       className={`h-8 px-3 gap-1.5 rounded-full transition-all duration-200 ${
         share
@@ -85,6 +87,7 @@ const SharePostBtn = ({
       }`}
     >
       <Share2
+        aria-hidden="true"
         className={`h-4 w-4 transition-all ${share ? "fill-blue-500" : ""}`}
       />
       <span className="text-xs font-medium">{sharesCount}</span>

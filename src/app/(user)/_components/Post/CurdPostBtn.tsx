@@ -11,17 +11,25 @@ import UpdatePostBtn from "./UpdatePostBtn";
 import CopyPostBtn from "./CopyPostBtn";
 import Link from "next/link";
 import { Post } from "@/types/post.Types";
+import DisableCommentsBtn from "../Comment/DisableCommentsBtn";
 
-const CurdPostBtn = ({ post }: { post: Post }) => {
+const CurdPostBtn = ({
+  post,
+  accountId,
+}: {
+  post: Post;
+  accountId: string;
+}) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Post options"
           className="h-8 w-8 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 transition-colors"
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal aria-hidden="true" className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -52,6 +60,8 @@ const CurdPostBtn = ({ post }: { post: Post }) => {
 
           {/* Delete Button */}
           <DeletePostBtn postId={post?.id} />
+
+          <DisableCommentsBtn postId={post?.id} accountId={accountId} isOpenComments={post.isOpenComments} />
         </div>
       </PopoverContent>
     </Popover>

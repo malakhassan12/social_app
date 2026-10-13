@@ -1,7 +1,7 @@
 import { FC, Suspense } from "react";
 
 import { Metadata } from "next";
-import getAccount from "@/helper/getAccount";
+import getAccount from "@/helper/account/getAccount";
 import ProfileContent from "../_components/profileContent";
 import ProfileContentSkeleton from "@/components/Skelton/ProfileContentSkelton";
 

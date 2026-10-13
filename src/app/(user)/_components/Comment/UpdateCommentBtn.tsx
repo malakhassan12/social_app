@@ -18,9 +18,13 @@ import { toast } from "sonner";
 
 interface UpdateCommentBtnProps {
   comment: Comment;
+  onUpdated: (content: string) => void;
 }
 
-const UpdateCommentBtn: FC<UpdateCommentBtnProps> = ({ comment }) => {
+const UpdateCommentBtn: FC<UpdateCommentBtnProps> = ({
+  comment,
+  onUpdated,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [content, setContent] = useState(comment.content);
   const [isPending, startTransition] = useTransition();
@@ -29,10 +33,15 @@ const UpdateCommentBtn: FC<UpdateCommentBtnProps> = ({ comment }) => {
     startTransition(async () => {
       const result = await updateComment(comment, formData);
 
-      if (result.success) {
+      if (
+        result.success &&
+        "content" in result &&
+        typeof result.content === "string"
+      ) {
         toast.success("Comment updated successfully!", {
           position: "top-center",
         });
+        onUpdated(result.content);
         setIsOpen(false);
       } else {
         toast.error(

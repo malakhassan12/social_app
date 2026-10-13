@@ -1,38 +1,39 @@
+
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { getSocket } from "@/lib/socket/socket";
-// import { socket } from "@/lib/socket/socket";
+import CommentItem from "./CommentItem";
+import useCommentRealTime, {
+  CommentWithLikes,
+} from "@/hooks/useCommentRealTime";
 
-export default function CommentRealTime() {
-  const router = useRouter();
+type Props = {
+  initialComments: CommentWithLikes[];
+  accountId: string;
+};
 
-  useEffect(() => {
-    const socket = getSocket();
+export default function CommentRealTime({
+  initialComments,
+  accountId,
+}: Props) {
+  const comments = useCommentRealTime(initialComments, accountId);
 
-    socket.connect();
-
-    console.log("🟢 CommentRealTime mounted");
-    console.log("🟢 socket.connected:", socket.connected);
-    console.log("🟢 socket.id:", socket.id);
-
-    const handleComment = (data: unknown) => {
-      console.log("🔥🔥 PUBLISH:COMMENT RECEIVED", data);
-
-      router.refresh();
-
-      console.log("🔄 router.refresh() called");
-    };
-
-    socket.on("publish:comment", handleComment);
-
-    return () => {
-      console.log("🔴 CommentRealTime cleanup");
-
-      socket.off("publish:comment", handleComment);
-    };
-  }, [router]);
-
-  return null;
+  return (
+    <div className="space-y-3 max-h-50 overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-none]">
+      {comments.length === 0 ? (
+        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+          No comments yet. Be the first!
+        </p>
+      ) : (
+        comments.map(({ comment, isLiked, likedCount }) => (
+          <CommentItem
+            key={comment.id}
+            comment={comment}
+            accountId={accountId}
+            isLiked={isLiked}
+            likedCount={likedCount}
+          />
+        ))
+      )}
+    </div>
+  );
 }

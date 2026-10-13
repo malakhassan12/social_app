@@ -67,8 +67,18 @@ const LikeCommentBtn = ({
   };
 
   return (
-    <Button variant="ghost" size="sm" onClick={handleLike} disabled={pending}>
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={handleLike}
+      disabled={pending}
+      aria-label={
+        optimisticLike.liked ? "Unlike comment" : "Like comment"
+      }
+      aria-pressed={optimisticLike.liked}
+    >
       <Heart
+        aria-hidden="true"
         className={`h-4 w-4 ${
           optimisticLike.liked ? "fill-red-500 text-red-500" : ""
         }`}

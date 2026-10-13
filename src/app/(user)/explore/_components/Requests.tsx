@@ -3,7 +3,7 @@ import { UserPlus, MapPin } from "lucide-react";
 import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
 import AcceptFollowBtn from "./AcceptFollowBtn";
 import RejectFollowBtn from "./RejectFollowBtn";
-import getFollowRequest from "@/helper/getFollowRequest";
+import getFollowRequest from "@/helper/friend/getFollowRequest";
 import RequestsRealTime from "./RequestsRealTime";
 
 const Requests = async ({ rightPanel = false }: { rightPanel?: boolean }) => {

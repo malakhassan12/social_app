@@ -2,8 +2,7 @@ import { NotificationType } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { getIo } from "@/lib/socket/getIo";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
-import { NOTIREQUEST } from "@/types/notification.Types";
-import { createNotification } from "../notification/createNotification";
+import { Comment } from "@/types/comment.Types";
 import { Post } from "@/types/post.Types";
 
 const publishToFollowers = async (
@@ -11,6 +10,21 @@ const publishToFollowers = async (
   type?: TypePublishSocket,
   data?: {
     post?: Post;
+    postEvent?: {
+      action: "created" | "updated" | "deleted" | "liked";
+      postId: string;
+      accountId?: string;
+      liked?: boolean;
+      likesCount?: number;
+    };
+    comment?: Partial<Comment>;
+    commentLike?: {
+      commentId: string;
+      accountId: string;
+      commentOwnerId: string;
+      liked: boolean;
+      likesCount: number;
+    };
   },
 ) => {
   const followers = await prisma.follower.findMany({
@@ -34,7 +48,16 @@ const publishToFollowers = async (
     receiverIds.add(follower.followerId);
   }
 
-  if (type === TypePublishSocket.POST && data?.post) {
+  if (type === TypePublishSocket.COMMENT_LIKE && data?.commentLike) {
+    receiverIds.add(data.commentLike.accountId);
+    receiverIds.add(data.commentLike.commentOwnerId);
+  }
+
+  if (
+    type === TypePublishSocket.POST &&
+    data?.post &&
+    (!data.postEvent || data.postEvent.action === "created")
+  ) {
     const post = data.post;
     // 1. إنشاء كل الإشعارات دفعة واحدة (batch insert) بدل loop
     await prisma.notification.createMany({
@@ -64,12 +87,26 @@ const publishToFollowers = async (
       //   await createNotification(notification);
       // }
 
-      io.to(`account:${receiverId}`).emit("publish:post");
+      const postEvent =
+        data?.postEvent ??
+        (data?.post
+          ? { action: "created" as const, postId: data.post.id }
+          : undefined);
+
+      if (postEvent) {
+        io.to(`account:${receiverId}`).emit("publish:post", postEvent);
+      }
     }
 
     if (type === TypePublishSocket.COMMENT) {
-      io.to(`account:${receiverId}`).emit("publish:comment");
-      console.log("Publish Comment");
+      io.to(`account:${receiverId}`).emit("publish:comment", data?.comment);
+    }
+
+    if (type === TypePublishSocket.COMMENT_LIKE && data?.commentLike) {
+      io.to(`account:${receiverId}`).emit(
+        "publish:comment-like",
+        data.commentLike,
+      );
     }
 
     if (type === TypePublishSocket.LIKE) {

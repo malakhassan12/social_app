@@ -1,10 +1,9 @@
 "use server";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { Post } from "@/types/post.Types";
 import { ShareResponse } from "@/types/share.Types";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
 import { NotificationType } from "@/generated/prisma/enums";
 import { getIo } from "@/lib/socket/getIo";
@@ -30,7 +29,7 @@ const createSharePost = async (post: Post) => {
     },
   });
 
-  let shareFromId;
+  let shareId: string;
 
   if (share) {
     await prisma.share.delete({
@@ -38,33 +37,32 @@ const createSharePost = async (post: Post) => {
         id: share.id,
       },
     });
+    shareId = share.id;
 
     res = {
       success: true,
       shared: false,
     };
-    shareFromId = share.shareFromId;
   } else {
-    const share = await prisma.share.create({
+    const createdShare = await prisma.share.create({
       data: {
         postId: post?.id,
         shareFromId: post?.author?.id,
         shareToId: accountId,
       },
     });
+    shareId = createdShare.id;
     res = {
       success: true,
       shared: true,
     };
 
-    shareFromId = share.shareFromId;
-
-    if (accountId !== share.shareFromId) {
+    if (accountId !== createdShare.shareFromId) {
       const notification: NOTIREQUEST = {
         title: "New Share",
         content: "shared your post",
         creatorId: accountId,
-        receiverId: share.shareFromId,
+        receiverId: createdShare.shareFromId,
         notificationType: NotificationType.SHARE,
       };
 
@@ -73,9 +71,12 @@ const createSharePost = async (post: Post) => {
   }
   const io = getIo();
 
-  io.to(`account:${shareFromId}`).emit("publish:post");
-
-  revalidatePath(`/api/post/${post?.id}`);
+  io.to(`account:${accountId}`).emit("publish:post", {
+    action: "shared",
+    postId: post.id,
+    shareId,
+    shared: res.shared,
+  });
 
   return res;
 };

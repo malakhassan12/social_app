@@ -23,6 +23,10 @@ export type Comment = {
 
   content: string;
 
+  isRemoved? : boolean,
+
+  isLiked? : boolean
+
   likes?: Like[];
 
   postId: string;

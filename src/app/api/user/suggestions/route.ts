@@ -1,6 +1,5 @@
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
-
 
 export async function GET() {
   const accountId = (await getAccountId()) as string;
@@ -60,7 +59,7 @@ export async function GET() {
               image: true,
               email: true,
               country: true,
-              username : true
+              username: true,
             },
           });
 

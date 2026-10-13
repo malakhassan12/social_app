@@ -1,50 +1,67 @@
-import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+"use client";
 
-const PostSkelton = () => {
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+
+const PostSkeleton = () => {
   return (
-     <Card  className="border border-gray-200 dark:border-gray-800 shadow-sm">
-          {/* Header */}
-          <CardHeader className="flex flex-row items-center gap-3 p-4 pb-2">
-            <Skeleton className="h-10 w-10 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-20" />
+    <Card
+      className=" mb-4 overflow-hidden rounded-2xl border-0 bg-white dark:bg-gray-900 shadow-lg w-full"
+      aria-hidden="true"
+    >
+      {/* Header */}
+      <CardHeader className="flex flex-row items-center justify-between p-4 pb-2 sm:p-5 sm:pb-3">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          {/* Avatar */}
+          <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+
+          <div className="min-w-0 flex-1 space-y-2">
+            {/* Username */}
+            <div className="h-3.5 w-28 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700 sm:h-4 sm:w-32" />
+            {/* Time + meta row */}
+            <div className="flex items-center gap-1.5">
+              <div className="h-2.5 w-12 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+              <div className="h-2.5 w-14 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
             </div>
-            <Skeleton className="h-8 w-8 rounded-full" />
-          </CardHeader>
+          </div>
+        </div>
 
-          {/* Content */}
-          <CardContent className="p-4 pt-2 space-y-3">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-3/4" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
+        {/* Action button (menu) */}
+        <div className="h-8 w-8 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+      </CardHeader>
 
-            {/* Image placeholder */}
-            <Skeleton className="w-full h-48 rounded-lg" />
+      {/* Content */}
+      <CardContent className="p-4 pt-0 sm:p-5 sm:pt-0">
+        <div className="space-y-2.5">
+          {/* Caption lines */}
+          <div className="h-3 w-full animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3 w-11/12 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+          <div className="h-3 w-3/4 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
 
-            {/* Actions */}
-            <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-800">
-              <div className="flex items-center gap-4">
-                <Skeleton className="h-8 w-12 rounded-full" />
-                <Skeleton className="h-8 w-12 rounded-full" />
-              </div>
-              <div className="flex items-center gap-2">
-                <Skeleton className="h-8 w-8 rounded-full" />
-                <Skeleton className="h-8 w-8 rounded-full" />
-              </div>
-            </div>
+          {/* Media block */}
+          <div className="mt-3 h-56 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-gray-700 sm:h-64" />
+        </div>
+      </CardContent>
 
-            {/* Comment input */}
-            <div className="flex items-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-800">
-              <Skeleton className="h-8 w-8 rounded-full" />
-              <Skeleton className="flex-1 h-9 rounded-full" />
-            </div>
-          </CardContent>
-        </Card>
-  )
-}
+      {/* Footer */}
+      <CardFooter className="block border-t border-gray-100 bg-gray-50/50 px-4 py-3 dark:border-gray-800 dark:bg-gray-800/30 sm:px-5 sm:py-4">
+        <div className="flex items-center justify-between">
+          {/* Left actions: like / comment / share */}
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 w-12 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          {/* Right action: save / bookmark */}
+          <div className="h-5 w-5 animate-pulse rounded-md bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </CardFooter>
+    </Card>
+  );
+};
 
-export default PostSkelton
+export default PostSkeleton;

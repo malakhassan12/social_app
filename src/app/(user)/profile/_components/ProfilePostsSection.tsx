@@ -1,36 +1,27 @@
-import ShareCard from "./ShareCard";
 import { FC } from "react";
-import getProfilePosts from "@/helper/getProfilePosts";
-import { Share } from "@/types/share.Types";
+import getProfilePosts from "@/helper/profile/getProfilePosts";
 import { Post } from "@/types/post.Types";
-import PostCard from "../../_components/Post/Post";
-import PostsSection from "./PostsSection";
+import { Account } from "@/types/account.Types";
+import PostsVirtuoso from "../../_components/Post/PostsVirtuoso";
 
 const ProfilePostsSection: FC<{
   searchParams: Promise<{
     pagePosts?: string | number;
   }>;
   profileId: string | undefined;
-}> = async ({ searchParams, profileId }) => {
+  account: Account;
+}> = async ({ searchParams, profileId, account }) => {
   const { pagePosts } = await searchParams;
 
   const {
     posts,
     currentPage,
 
-    limit,
-
-    total,
-
-    totalPages,
-
     hasNextPage,
-
-    hasPreviousPage,
   } = await getProfilePosts(profileId, pagePosts as string | number);
 
   return (
-    <section>
+    <section className="h-[calc(100vh-200px)]">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Your Activity
@@ -40,30 +31,12 @@ const ProfilePostsSection: FC<{
         </span>
       </div>
 
-      <PostsSection
+      <PostsVirtuoso
+        posts={posts as unknown as Post[]}
         currentPage={currentPage}
-        limit={limit}
-        total={total}
-        totalPages={totalPages}
         hasNextPage={hasNextPage}
-        hasPreviousPage={hasPreviousPage}
-        profileId={profileId}
+        account={account as unknown as Account}
       />
-      <br/>
-
-      <div className="space-y-4">
-        {posts.map((item) => {
-          if (item.type === "POST") {
-            return (
-              <PostCard key={item.id} post={item.post as unknown as Post} />
-            );
-          } else {
-            return (
-              <ShareCard key={item.id} share={item.share as unknown as Share} />
-            );
-          }
-        })}
-      </div>
     </section>
   );
 };

@@ -1,6 +1,6 @@
 "use server";
 
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { Comment } from "@/types/comment.Types";
 import {
@@ -61,7 +61,7 @@ const updateComment = async (comment: Comment, formData: FormData) => {
       };
     }
 
-    await prisma.comment.update({
+    const commentUpdated = await prisma.comment.update({
       where: {
         id: comment.id,
         postId: comment?.postId,
@@ -69,10 +69,21 @@ const updateComment = async (comment: Comment, formData: FormData) => {
       data: {
         content,
       },
+      include: {
+        author: {
+          select: {
+            id : true,
+            username: true,
+            image: true,
+          },
+        },
+      },
     });
     revalidatePath(`/api/comment/${comment?.postId}`);
 
-    await publishToFollowers(accountId, TypePublishSocket.COMMENT);
+    await publishToFollowers(accountId, TypePublishSocket.COMMENT, {
+      comment: commentUpdated as unknown as Comment,
+    });
 
     return {
       success: true,

@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createTempSession } from "@/lib/session";
+import { createTempSession } from "@/lib/temp-session-for-select-account/session";
 
 const authSelectAccountToken = async (userId: string, emailId: string) => {
   const cookieStore = await cookies();

@@ -4,13 +4,16 @@ dotenv.config({
   path: ".env",
 });
 
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/temp-session-for-select-account/session";
 import * as cookie from "cookie";
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 
 import { setIo } from "@/lib/socket/getIo";
+import { getRelevantAccountIds } from "@/helper/account/getRelevantAccountIds";
+import prisma from "@/lib/prisma";
+import markMessageAsRead from "@/actions/chat/markMessageAsRead";
 
 const dev = process.env.NODE_ENV !== "production";
 
@@ -31,47 +34,6 @@ app.prepare().then(() => {
   const io = new Server(httpServer);
 
   setIo(io);
-  // ========================================
-  // Global Socket.IO Authentication
-  // ========================================
-
-  // io.use(async (socket, next) => {
-  //   try {
-  //     // 1. Get Cookie header
-  //     const cookieHeader = socket.handshake.headers.cookie;
-
-  //     if (!cookieHeader) {
-  //       return next(new Error("Unauthorized"));
-  //     }
-
-  //     // 2. Parse cookies
-  //     const cookies = cookie.parseCookie(cookieHeader);
-
-  //     // 3. Get session ID
-  //     const sessionId = cookies.token;
-
-  //     if (!sessionId) {
-  //       return next(new Error("Unauthorized"));
-  //     }
-
-  //     // 4. Validate session
-  //     const { accountId } = await getSession(sessionId);
-
-  //     if (!accountId) {
-  //       return next(new Error("Unauthorized"));
-  //     }
-
-  //     // 5. Store authenticated user
-  //     socket.data.accountId = accountId;
-
-  //     // 6. Continue connection
-  //     next();
-  //   } catch (error) {
-  //     console.error("Socket authentication error:", error);
-
-  //     next(new Error("Unauthorized"));
-  //   }
-  // });
 
   io.use(async (socket, next) => {
     try {
@@ -82,43 +44,134 @@ app.prepare().then(() => {
       }
 
       const cookies = cookie.parseCookie(cookieHeader);
+
       const sessionId = cookies.token;
 
       if (!sessionId) {
         return next(new Error("Unauthorized"));
       }
 
-      const { accountId } = await getSession(sessionId);
+      const { accountId, deviceSessionId } = await getSession(sessionId);
 
       if (!accountId) {
         return next(new Error("Unauthorized"));
       }
 
+      const account = await prisma.account.findUnique({
+        where: {
+          id: accountId,
+        },
+        select: {
+          name: true,
+          image: true,
+        },
+      });
+
       socket.data.accountId = accountId;
+
+      socket.data.accountName = account?.name || "Account";
+
+      socket.data.accountImage = account?.image || null;
+
+      socket.data.deviceSessionId = deviceSessionId;
+
       next();
     } catch (error) {
       console.error("Socket authentication error:", error);
-      // منع الـ client من محاولة إعادة الاتصال فورًا بشكل جامح
+
       next(new Error("Unauthorized"));
     }
   });
 
-  io.on("connection", (socket) => {
-    const authenticatedAccountId = socket.data.accountId; // 👈 Extract verified ID
+  io.on("connection", async (socket) => {
+    const authenticatedAccountId = socket.data.accountId;
+
+    const deviceSessionId = socket.data.deviceSessionId;
 
     console.log("🔥 SOCKET CONNECTED", {
       socketId: socket.id,
       accountId: authenticatedAccountId,
+      deviceSessionId,
       transport: socket.conn.transport.name,
     });
 
-    // 👈 ADD THIS LINE HERE: Auto-join the private room globally!
+    if (deviceSessionId) {
+      socket.join(`device-session:${deviceSessionId}`);
+    }
+
     if (authenticatedAccountId) {
+      // ✅ افحص الأول، قبل الـ join
+      const roomBefore = io.sockets.adapter.rooms.get(
+        `account:${authenticatedAccountId}`,
+      );
+      const wasOffline = !roomBefore || roomBefore.size === 0;
+
+      // ✅ بعد كده اعمل join
       socket.join(`account:${authenticatedAccountId}`);
+
       console.log(
         `🔌 Socket ${socket.id} joined room: account:${authenticatedAccountId}`,
       );
+
+      if (wasOffline) {
+        const relevantIds = await getRelevantAccountIds(authenticatedAccountId);
+
+        for (const relevantId of relevantIds) {
+          io.to(`account:${relevantId}`).emit(
+            "presence:online",
+            authenticatedAccountId,
+          );
+        }
+      }
     }
+
+    socket.on(
+      "message:read",
+      async (
+        { messageId }: { messageId: string },
+        callback?: (response: { success: boolean; message: string }) => void,
+      ) => {
+        try {
+          if (!messageId) {
+            callback?.({ success: false, message: "Message ID is required" });
+            return;
+          }
+
+          const accountId = socket.data.accountId;
+
+          if (!accountId) {
+            callback?.({ success: false, message: "Unauthorized" });
+            return;
+          }
+
+          const result = await markMessageAsRead(messageId, accountId);
+
+          if (!result.success) {
+            callback?.({ success: false, message: result.message });
+            return;
+          }
+
+          const { data, senderId,  } = result;
+
+         
+
+          io.to(`account:${senderId}`).emit("message:read", {
+            messageId: data?.messageId,
+            accountId: data?.accountId, // مين اللي قرا الرسالة
+            readAt: data?.readAt,
+          });
+
+
+          callback?.({ success: true, message: "Message marked as read" });
+        } catch (error) {
+          console.error("message:read error:", error);
+          callback?.({
+            success: false,
+            message: "Failed to mark message as read",
+          });
+        }
+      },
+    );
 
     socket.conn.on("upgrade", () => {
       console.log("⬆️ SOCKET TRANSPORT UPGRADED", {
@@ -127,71 +180,78 @@ app.prepare().then(() => {
       });
     });
 
-    socket.on("disconnect", (reason, details) => {
+    socket.on("disconnect", async (reason) => {
       console.log("❌ SOCKET DISCONNECTED", {
         socketId: socket.id,
-        accountId: socket.data.accountId,
+        accountId: authenticatedAccountId,
         reason,
-        details,
       });
+
+      if (!authenticatedAccountId) return;
+
+      // ✅ لازم > 1 مش > 0 — لأن الـ socket الحالي لسه فعليًا
+      // عضو في الـ room في اللحظة دي (Socket.io بتشيله بعد ما الـ handler يخلص)
+      const roomAfter = io.sockets.adapter.rooms.get(
+        `account:${authenticatedAccountId}`,
+      );
+      const stillOnline = roomAfter && roomAfter.size > 1;
+
+      if (!stillOnline) {
+        console.log(`🔴 ${authenticatedAccountId} is offline`);
+
+        const relevantIds = await getRelevantAccountIds(authenticatedAccountId);
+
+        for (const relevantId of relevantIds) {
+          io.to(`account:${relevantId}`).emit(
+            "presence:offline",
+            authenticatedAccountId,
+          );
+        }
+      }
     });
+
+    socket.on(
+      "typing:start",
+      ({ conversationId }: { conversationId: string }) => {
+        if (!authenticatedAccountId) return;
+
+        // ابعت لكل الموجودين في المحادثة (غير المرسل نفسه)
+        socket.to(`conversation:${conversationId}`).emit("typing:start", {
+          accountId: socket.data.accountId,
+          accountName: socket.data.accountName,
+          accountImage: socket.data.accountImage,
+          conversationId,
+        });
+      },
+    );
+
+    socket.on(
+      "typing:stop",
+      ({ conversationId }: { conversationId: string }) => {
+        if (!authenticatedAccountId) return;
+
+        socket.to(`conversation:${conversationId}`).emit("typing:stop", {
+          accountId: socket.data.accountId,
+
+          conversationId,
+        });
+      },
+    );
+
+    socket.on(
+      "conversation:join",
+      ({ conversationId }: { conversationId: string }) => {
+        socket.join(`conversation:${conversationId}`);
+      },
+    );
+
+    socket.on(
+      "conversation:leave",
+      ({ conversationId }: { conversationId: string }) => {
+        socket.leave(`conversation:${conversationId}`);
+      },
+    );
   });
-
-  // ========================================
-  // Namespaces
-  // ========================================
-
-  // const postIo = io.of("/post");
-  // const notiIo = io.of("/noti");
-
-  // ========================================
-  // Register namespace instances
-  // ========================================
-
-  // setPostIo(postIo);
-  // setNotificaionIo(notiIo);
-
-  // ========================================
-  // Post namespace
-  // ========================================
-
-  // postIo.on("connection", (socket) => {
-  //   const accountId = socket.data.accountId;
-
-  //   console.log(
-  //     `Post socket connected: ${socket.id}, account: ${accountId}`,
-  //   );
-
-  //   socket.join(`account:${accountId}`);
-
-  //   socket.on("disconnect", (reason) => {
-  //     console.log(
-  //       `Post socket disconnected: ${accountId}`,
-  //       reason,
-  //     );
-  //   });
-  // });
-
-  // ========================================
-  // Notification namespace
-  // ========================================
-
-  // notiIo.on("connection", (socket) => {
-  //   const accountId = socket.data.accountId;
-
-  //   console.log(
-  //     `Notification socket connected: ${socket.id}, account: ${accountId}`,
-  //   );
-
-  //   socket.join(`account:${accountId}`);
-
-  //   socket.on("disconnect", (reason) => {
-  //     console.log(
-  //       `Notification socket disconnected: ${accountId}`,
-  //       reason,
-  //     );
-  //   });
-  // });
 
   // ========================================
   // HTTP Server

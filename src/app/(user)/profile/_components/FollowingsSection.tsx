@@ -1,7 +1,7 @@
 import { FC } from "react";
 import AccountCard from "./AccountCard";
 import { Friend } from "@/types/friend.Types";
-import getFollowings from "@/helper/getFollowings";
+import getFollowings from "@/helper/follow/getFollowings";
 import FollowingsContent from "./FollowingsContent";
 
 const FollowingsSection: FC<{

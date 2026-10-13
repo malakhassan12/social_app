@@ -1,4 +1,4 @@
-import getFollowers from "@/helper/getFollowers";
+import getFollowers from "@/helper/follow/getFollowers";
 import { FC } from "react";
 import AccountCard from "./AccountCard";
 import { Friend } from "@/types/friend.Types";

@@ -7,7 +7,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { FormState } from "@/types/form.Types";
 import { authLogin } from "@/actions/auth/authLogin";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import authSelectAccountToken from "@/actions/auth/authSelectAccountToken";
 
 const GlassInputWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -21,7 +20,6 @@ const initialState: FormState = {
 };
 
 const LoginForm = () => {
-  const router = useRouter();
 
   const [showPassword, setShowPassword] = useState(false);
   const [state, formAction, pending] = useActionState(authLogin, initialState);
@@ -58,17 +56,11 @@ const LoginForm = () => {
         return;
       }
 
-      // const params = new URLSearchParams({
-      //   emailId,
-      //   userId,
-      // });
-
       void (async () => {
         await authSelectAccountToken(userId, emailId);
-        // router.push(`/select-account?${params.toString()}`);
       })();
     }
-  }, [state, router]);
+  }, [state]);
 
   return (
     <form className="space-y-5" action={formAction}>

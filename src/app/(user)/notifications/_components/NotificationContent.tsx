@@ -1,5 +1,5 @@
 import { NotificationType } from "@/generated/prisma/enums";
-import getNotifications from "@/helper/getNotifications";
+import getNotifications from "@/helper/notification/getNotifications";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
@@ -31,7 +31,6 @@ async function NotificationsContent({ searchParams }: Props) {
 
   const { notifications, total, totalPages, hasNextPage, hasPreviousPage } =
     result;
-
 
   const likeCount = notifications.filter(
     (n) => n.notificationType === NotificationType.LIKE,

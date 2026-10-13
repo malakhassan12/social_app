@@ -1,12 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronRight, UserPlus } from "lucide-react";
-import getSuggestions, { SuggestionAccount } from "@/helper/getSuggestions";
-import checkFollowStatus from "@/helper/checkFollowStatus";
-import getStatusOfRequest from "@/actions/FollowRequest/getStatusOfRequest";
+import getSuggestions, {
+  SuggestionAccount,
+} from "@/helper/suggestion/getSuggestions";
+import checkFollowStatus from "@/helper/follow/checkFollowStatus";
+import getStatusOfRequest from "@/helper/friend/getStatusOfRequest";
 import { FollowRequestEnum } from "@/types/enum/follow-req.enum";
 import SuggestionItem from "./SuggestionsItem";
 import { Account } from "@/types/account.Types";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
@@ -16,11 +18,11 @@ const Suggestions = async ({
   rightPanel?: boolean;
 }) => {
   const accountId = await getAccountId();
-  const {suggestions} = await getSuggestions(accountId as string);
+  const { suggestions } = await getSuggestions(accountId as string);
 
   // Fetch follow and request status for all suggestions in parallel
   const suggestionsWithStatus = await Promise.all(
-    suggestions.map(async (suggestion : SuggestionAccount) => {
+    suggestions.map(async (suggestion: SuggestionAccount) => {
       const [followStatus, requestStatus] = await Promise.all([
         checkFollowStatus(suggestion.id, accountId as string),
         getStatusOfRequest(suggestion.id, accountId as string),

@@ -1,10 +1,10 @@
-import getStatusOfRequest from "@/actions/FollowRequest/getStatusOfRequest";
-import checkFollowStatus from "@/helper/checkFollowStatus";
-import { getAccountId } from "@/helper/getAccountId";
+import getStatusOfRequest from "@/helper/friend/getStatusOfRequest";
+import checkFollowStatus from "@/helper/follow/checkFollowStatus";
+import { getAccountId } from "@/helper/account/getAccountId";
 import getSuggestions, {
   PaginatedSuggestions,
   SuggestionAccount,
-} from "@/helper/getSuggestions";
+} from "@/helper/suggestion/getSuggestions";
 import { FollowRequestEnum } from "@/types/enum/follow-req.enum";
 import SuggestionPagination from "./_components/SuggestionPagination";
 import { Account } from "@/types/account.Types";

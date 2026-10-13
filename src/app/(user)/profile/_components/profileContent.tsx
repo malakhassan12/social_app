@@ -1,10 +1,13 @@
 import ShowFollow from "../_components/ShowFollow";
 import { FC } from "react";
-import isPrivateOtherProfile from "@/helper/isPrivateOtherProfile";
+import isPrivateOtherProfile from "@/helper/profile/isPrivateOtherProfile";
 import PrivateAccount from "./PrivateAccount";
 import ProfilePostsSection from "./ProfilePostsSection";
 import BackBtn from "@/components/Buttons/BackBtn";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
+import isAFriend from "@/helper/friend/isAFriend";
+import getAccount from "@/helper/account/getAccount";
+import { Account } from "@/types/account.Types";
 
 type ProfileContentProps = {
   params: Promise<{
@@ -28,6 +31,10 @@ const ProfileContent: FC<ProfileContentProps> = async ({
 
   const privateProfile = await isPrivateOtherProfile(profileId as string);
 
+  const isFriend = await isAFriend(profileId as string);
+
+  const account = await getAccount();
+
   return (
     <>
       <BackBtn />
@@ -36,12 +43,13 @@ const ProfileContent: FC<ProfileContentProps> = async ({
         searchParams={searchParams}
       />
 
-      {privateProfile ? (
+      {privateProfile && !isFriend ? (
         <PrivateAccount />
       ) : (
         <ProfilePostsSection
           searchParams={searchParams}
           profileId={profileId ?? undefined}
+          account={account as unknown as Account}
         />
       )}
     </>

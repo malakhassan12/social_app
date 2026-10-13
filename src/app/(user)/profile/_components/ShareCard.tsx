@@ -1,12 +1,13 @@
-import { Card,  CardHeader } from "@/components/ui/card";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Share2 } from "lucide-react";
 import { getTime } from "@/utils/getTime";
 import { Share } from "@/types/share.Types";
 import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
-import PostCard from "../../_components/Post/Post";
+import PostView from "../../_components/Post/PostView";
 import { Post } from "@/types/post.Types";
+import { Account } from "@/types/account.Types";
 
-const ShareCard = ({ share }: { share: Share }) => {
+const ShareCard = ({ share , account }: { share: Share , account : Account }) => {
   const shareTo = share?.shareTo ?? { name: "Unknown", image: undefined };
   const isSharedToSelf = share?.shareFromId === share?.shareToId;
 
@@ -33,7 +34,7 @@ const ShareCard = ({ share }: { share: Share }) => {
         </span>
       </CardHeader>
       <CardHeader className="p-4 pb-2">
-        <PostCard post={share?.post as unknown as Post} />
+        <PostView post={share?.post as unknown as Post} account={account as Account} />
       </CardHeader>
     </Card>
   );

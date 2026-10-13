@@ -1,15 +1,18 @@
 import ProfileImage from "./ProfileImage";
-import { Mail, MapPin, Lock } from "lucide-react";
+import { Mail, MapPin, Lock, Send } from "lucide-react";
 import { Friend } from "@/types/friend.Types";
 import { FC } from "react";
 import FollowFriendBtn from "../../explore/_components/FollowFriendBtn";
 import AddFriendBtn from "../../explore/_components/AddFriendBtn";
-import checkFollowStatus from "@/helper/checkFollowStatus";
-import getStatusOfRequest from "@/actions/FollowRequest/getStatusOfRequest";
+import checkFollowStatus from "@/helper/follow/checkFollowStatus";
+import getStatusOfRequest from "@/helper/friend/getStatusOfRequest";
 import { FollowRequestEnum } from "@/types/enum/follow-req.enum";
 import prisma from "@/lib/prisma";
 import { AccountType } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
+import Link from "next/link";
+import getConversation from "@/helper/chat/getConversation";
+import isAFriend from "@/helper/friend/isAFriend";
 
 const ProfileCard: FC<{
   user: Friend;
@@ -20,8 +23,7 @@ const ProfileCard: FC<{
 
   const accountId = await getAccountId();
 
-
-  let profile: { type: AccountType } | null = null;
+  let profile: { type: AccountType; isOpenMessages: boolean } | null = null;
   if (profileId) {
     [followStatus, requestStatus] = await Promise.all([
       (await checkFollowStatus(profileId, accountId as string)).status,
@@ -33,13 +35,19 @@ const ProfileCard: FC<{
       },
       select: {
         type: true,
+        isOpenMessages: true,
       },
     });
   }
 
-
-
   const isPrivate = profile?.type === AccountType.PRIVATE;
+
+  const conversation = await getConversation(
+    profileId as string,
+    accountId as string,
+  );
+
+  const friend = await isAFriend(profileId as string);
 
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 p-4 sm:p-6 bg-white dark:bg-gray-900/80 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-200">
@@ -88,7 +96,7 @@ const ProfileCard: FC<{
       </div>
 
       {/* Action Buttons */}
-      {profileId && (
+      {profileId && accountId !== profileId && (
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto mt-4 sm:mt-0">
           <AddFriendBtn
             friendShipStatus={requestStatus as unknown as FollowRequestEnum}
@@ -99,6 +107,26 @@ const ProfileCard: FC<{
               existFollow={followStatus as unknown as boolean}
               followingId={profileId}
             />
+          )}
+
+          {(profile?.isOpenMessages || friend) && (
+            <Link
+              href={`/profile/send-message/${conversation ? conversation.conversationId : undefined}?accountId=${profileId}`}
+              className="
+        inline-flex w-full items-center justify-start gap-2
+        rounded-lg px-2 py-2 text-xs font-medium
+        sm:px-3 sm:text-sm
+        h-8 sm:h-9
+        text-gray-500
+        hover:bg-gray-50 hover:text-gray-800
+        dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200
+        transition-colors
+      "
+            >
+              <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Send Message</span>
+              <span className="xs:hidden">Message</span>
+            </Link>
           )}
         </div>
       )}

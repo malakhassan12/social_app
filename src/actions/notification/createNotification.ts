@@ -1,7 +1,7 @@
 "use server";
 
 import { NotificationType } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { getIo } from "@/lib/socket/getIo";
 import { NOTIREQUEST } from "@/types/notification.Types";

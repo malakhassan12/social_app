@@ -54,6 +54,8 @@ const LikePostBtn = ({
     <Button
       onClick={handleLike}
       disabled={pending}
+      aria-label={like ? "Unlike post" : "Like post"}
+      aria-pressed={like}
       variant="ghost"
       size="sm"
       className="
@@ -65,6 +67,7 @@ const LikePostBtn = ({
       "
     >
       <Heart
+        aria-hidden="true"
         className={`h-4 w-4 ${like ? "fill-red-500 text-red-500" : ""}`}
       />
 

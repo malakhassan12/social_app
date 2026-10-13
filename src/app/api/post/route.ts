@@ -1,11 +1,10 @@
 import { FollowRequestStatus } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
   try {
     const finalAccountId = await getAccountId();
-
 
     // If user is not logged in
     if (!finalAccountId) {
@@ -119,7 +118,7 @@ export async function GET() {
                 email: true,
               },
             },
-            username : true,
+            username: true,
 
             name: true,
             image: true,
@@ -127,7 +126,6 @@ export async function GET() {
         },
       },
     });
-
 
     return Response.json({
       posts,

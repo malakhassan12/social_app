@@ -4,7 +4,7 @@ import {
   FollowRequestStatus,
   NotificationType,
 } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { FormState } from "@/types/form.Types";
 import { NOTIREQUEST } from "@/types/notification.Types";

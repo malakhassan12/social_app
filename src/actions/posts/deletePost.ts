@@ -1,8 +1,7 @@
 "use server";
 
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import publishToFollowers from "../socket/publish-to-followers";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
 
@@ -48,9 +47,12 @@ export const deletePost = async (postId: string) => {
         id: postId,
       },
     });
-    await publishToFollowers(accountId, TypePublishSocket.POST);
-
-    revalidatePath(`/api/post`);
+    await publishToFollowers(accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "deleted",
+        postId,
+      },
+    });
 
     return {
       success: true,

@@ -16,7 +16,12 @@ const ProfileBtn = ({ account }: { account: Account }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="rounded-full">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Open profile menu"
+          className="rounded-full"
+        >
           <ProfileAvatar name={account?.name} image={account?.image} />
         </Button>
       </PopoverTrigger>

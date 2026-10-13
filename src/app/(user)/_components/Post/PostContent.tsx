@@ -11,8 +11,12 @@ const PostContent = ({ post }: { post: Post }) => {
 
   const images = post?.image || [];
   const imageCount = images.length;
+  const imageSizes =
+    imageCount > 1
+      ? "min(316px, calc((100vw - 56px) / 2))"
+      : "min(632px, calc(100vw - 56px))";
 
-    // Determine grid layout based on image count
+  // Determine grid layout based on image count
   const getGridClasses = () => {
     if (imageCount === 0) return "";
     if (imageCount === 1) return "grid-cols-1";
@@ -23,11 +27,16 @@ const PostContent = ({ post }: { post: Post }) => {
 
   // Determine aspect ratio based on position and count
   const getAspectClass = (index: number) => {
-    if (imageCount === 1) return "aspect-video sm:aspect-[16/10]";
-    if (imageCount === 3 && index === 0) return "aspect-auto row-span-2";
+    if (imageCount === 1) {
+      return "aspect-video sm:aspect-[16/10]";
+    }
+
+    if (imageCount === 3 && index === 0) {
+      return "aspect-[2/3] row-span-2";
+    }
+
     return "aspect-square";
   };
-
   // Determine if image should span full height (for 3 images layout)
   const getRowSpan = (index: number) => {
     if (imageCount === 3 && index === 0) return "row-span-2";
@@ -75,11 +84,9 @@ const PostContent = ({ post }: { post: Post }) => {
                         src={img}
                         alt={`Post image ${index + 1}`}
                         fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        
+                        sizes={imageSizes}
+                        className="object-cover"
                       />
-
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 

@@ -10,7 +10,7 @@ type PROPS = {
 
 const Nav: FC<PROPS> = ({ children }) => {
   return (
-    <header className="h-14 border-b flex items-center justify-between px-4 bg-background fixed top-0 z-50  w-[stretch]">
+    <header className="h-14 border-b flex items-center justify-between px-4 backdrop-blur-xl fixed top-0 z-50  w-[stretch]">
       {/* Left Section: Sidebar Trigger + Logo */}
       <div className="flex items-center gap-3 shrink-0">
         {children} {/* Sidebar trigger (Menu icon) */}

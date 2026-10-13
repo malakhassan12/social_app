@@ -1,48 +1,32 @@
-import { Post } from "@/types/post.Types";
+import getPosts from "@/helper/post/getPosts";
 
-import PostCard from "./Post";
-import getPosts from "@/helper/getPosts";
-import PostsPagination from "./PostsPagination";
+import PostsVirtuoso from "./PostsVirtuoso";
+import type { FeedActivity } from "./PostsVirtuoso";
+import getAccount from "@/helper/account/getAccount";
+import { Account } from "@/types/account.Types";
 
 async function PostsSection({
   searchParams,
 }: {
-  searchParams: Promise<{
-    page?: string;
-  }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { page } = await searchParams;
-
-  const {
-    posts,
-    currentPage,
-    limit,
-    total,
-    totalPages,
-    hasNextPage,
-    hasPreviousPage,
-  } = await getPosts(page ?? "1");
+  const [postResult, account] = await Promise.all([
+    getPosts(page ?? "1"),
+    getAccount(),
+  ]);
+  const { posts, currentPage, hasNextPage } = postResult;
 
   return (
-    <>
-      <PostsPagination
+    <div className="h-screen">
+      <PostsVirtuoso
+        posts={posts as unknown as FeedActivity[]}
         currentPage={currentPage}
-        limit={limit}
-        total={total}
-        totalPages={totalPages}
         hasNextPage={hasNextPage}
-        hasPreviousPage={hasPreviousPage}
+        account={account as unknown as Account}
+        realtime
       />
-
-      <br />
-
-      {posts.map((post) => (
-        <PostCard
-          key={post.id}
-          post={post as unknown as Post}
-        />
-      ))}
-    </>
+    </div>
   );
 }
 

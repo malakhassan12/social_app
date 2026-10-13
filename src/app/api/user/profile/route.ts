@@ -1,4 +1,4 @@
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 
 export async function GET() {
@@ -49,7 +49,7 @@ export async function GET() {
 
     const posts = await prisma.post.findMany({
       where: {
-        accountId
+        accountId,
       },
       select: {
         id: true,

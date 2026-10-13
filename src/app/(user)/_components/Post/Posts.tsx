@@ -1,4 +1,3 @@
-import PostsRealtime from "./PostsRealTime";
 import PostsSection from "./PostsSection";
 
 const Posts = ({
@@ -8,12 +7,7 @@ const Posts = ({
     page?: string;
   }>;
 }) => {
-  return (
-    <>
-      <PostsRealtime />
-      <PostsSection searchParams={searchParams} />
-    </>
-  );
+  return <PostsSection searchParams={searchParams} />;
 };
 
 export default Posts;

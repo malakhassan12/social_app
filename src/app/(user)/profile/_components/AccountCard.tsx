@@ -1,5 +1,5 @@
 import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
-import checkFollowStatus from "@/helper/checkFollowStatus";
+import checkFollowStatus from "@/helper/follow/checkFollowStatus";
 import { Friend } from "@/types/friend.Types";
 import AddFriendBtn from "../../explore/_components/AddFriendBtn";
 import FollowFriendBtn from "../../explore/_components/FollowFriendBtn";
@@ -7,7 +7,7 @@ import { FollowRequestEnum } from "@/types/enum/follow-req.enum";
 import { Mail, MapPin, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import getStatusOfRequest from "@/actions/FollowRequest/getStatusOfRequest";
+import getStatusOfRequest from "@/helper/friend/getStatusOfRequest";
 import prisma from "@/lib/prisma";
 import { AccountType } from "@/generated/prisma/enums";
 

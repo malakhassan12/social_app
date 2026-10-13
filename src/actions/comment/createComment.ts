@@ -5,9 +5,10 @@ import { validateCreateComment } from "@/utils/commentValidation";
 import { createNotification } from "../notification/createNotification";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { NotificationType } from "@/generated/prisma/enums";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import publishToFollowers from "../socket/publish-to-followers";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
+import { Comment } from "@/types/comment.Types";
 
 export async function createComment(postId: string, formData: FormData) {
   const accountId = await getAccountId();
@@ -34,11 +35,20 @@ export async function createComment(postId: string, formData: FormData) {
     };
   }
 
-  await prisma.comment.create({
+  const comment = await prisma.comment.create({
     data: {
       content,
       postId,
       accountId,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          username: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -50,7 +60,6 @@ export async function createComment(postId: string, formData: FormData) {
       accountId: true,
     },
   });
-
 
   if (post?.accountId) {
     if (accountId !== post.accountId) {
@@ -64,7 +73,9 @@ export async function createComment(postId: string, formData: FormData) {
 
       await createNotification(notification);
     }
-    await publishToFollowers(post.accountId, TypePublishSocket.COMMENT);
+    await publishToFollowers(post.accountId, TypePublishSocket.COMMENT, {
+      comment: comment as unknown as Comment,
+    });
   }
 
   // revalidatePath(`/api/comment/${postId}`);

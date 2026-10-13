@@ -11,7 +11,7 @@ import {
   NotificationType,
 } from "@/generated/prisma/enums";
 
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 
 import { FormState } from "@/types/form.Types";
 import { getIo } from "@/lib/socket/getIo";

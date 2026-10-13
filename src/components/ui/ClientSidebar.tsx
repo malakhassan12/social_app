@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { AppSidebar } from "./app-sidebar";
 
 export default function ClientSidebar({
   children,
@@ -11,8 +10,17 @@ export default function ClientSidebar({
   const mounted = useSyncExternalStore(
     () => () => {},
     () => true,
-    () => false,
+    () => true,
   );
+  /*
+  
+  useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot
+  );
+  
+  */
 
   if (!mounted) {
     return null;

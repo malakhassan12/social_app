@@ -4,9 +4,8 @@ import { NotificationType } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { LikeResponse } from "@/types/like.Types";
 import { NOTIREQUEST } from "@/types/notification.Types";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import publishToFollowers from "../socket/publish-to-followers";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
 
@@ -81,10 +80,20 @@ const createLikeOnPost = async (postId: string) => {
       };
       await createNotification(notification);
     }
-    await publishToFollowers(post.accountId, TypePublishSocket.POST);
-  }
+    const likesCount = await prisma.postLike.count({
+      where: { postId },
+    });
 
-  revalidatePath(`/`);
+    await publishToFollowers(post.accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "liked",
+        postId,
+        accountId,
+        liked: res.liked,
+        likesCount,
+      },
+    });
+  }
 
   return res;
 };

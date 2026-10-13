@@ -1,6 +1,6 @@
 "use server";
 
-import { getAccountId } from "@/helper/getAccountId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { Comment } from "@/types/comment.Types";
 import { revalidatePath } from "next/cache";
@@ -44,13 +44,22 @@ const deleteComment = async (comment: Comment) => {
       };
     }
 
-    await prisma.comment.delete({
-      where: { id: comment?.id },
-    });
-
+    if (comment?.id) {
+      await prisma.comment.update({
+        where: {
+          id: comment.id,
+        },
+        data: {
+          isRemoved: true,
+          removedAt: new Date(),
+        },
+      });
+    }
     revalidatePath(`/api/comment/${comment?.postId}`);
 
-    await publishToFollowers(accountId, TypePublishSocket.COMMENT);
+    await publishToFollowers(accountId, TypePublishSocket.COMMENT, {
+      comment: commentExist as unknown as Comment,
+    });
 
     return {
       success: true,
