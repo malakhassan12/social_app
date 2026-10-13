@@ -1,20 +1,21 @@
 "use server";
 
 import { NotificationType } from "@/generated/prisma/enums";
-import { getUserId } from "@/helper/getUserId";
 import prisma from "@/lib/prisma";
 import { LikeResponse } from "@/types/like.Types";
 import { NOTIREQUEST } from "@/types/notification.Types";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
+import { getAccountId } from "@/helper/account/getAccountId";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 const createLikeOnPost = async (postId: string) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
-      error: {
+      errors: {
         message: "Unauthorized",
       },
     };
@@ -24,18 +25,27 @@ const createLikeOnPost = async (postId: string) => {
 
   const like = await prisma.postLike.findUnique({
     where: {
-      userId_postId: {
-        userId,
+      accountId_postId: {
+        accountId,
         postId,
       },
+    },
+  });
+
+  const post = await prisma.post.findUnique({
+    where: {
+      id: postId,
+    },
+    select: {
+      accountId: true,
     },
   });
 
   if (like) {
     await prisma.postLike.delete({
       where: {
-        userId_postId: {
-          userId,
+        accountId_postId: {
+          accountId,
           postId,
         },
       },
@@ -48,37 +58,42 @@ const createLikeOnPost = async (postId: string) => {
   } else {
     await prisma.postLike.create({
       data: {
-        userId,
+        accountId,
         postId,
       },
     });
+
     res = {
       success: true,
       liked: true,
     };
+  }
 
-    const post = await prisma.post.findUnique({
-      where: {
-        id: postId,
-      },
-      select: {
-        authorId: true,
-      },
-    });
-
-    if (post?.authorId) {
+  if (post?.accountId) {
+    if (accountId !== post.accountId) {
       const notification: NOTIREQUEST = {
         title: "New Like",
         content: `liked your post`,
-        creatorId: userId, // Iam make the action
-        userId: post.authorId, // the notification sent to the specific user
+        creatorId: accountId, // Iam make the action
+        receiverId: post.accountId, // the notification sent to the specific user
         notificationType: NotificationType.LIKE,
       };
-      createNotification(notification);
+      await createNotification(notification);
     }
-  }
+    const likesCount = await prisma.postLike.count({
+      where: { postId },
+    });
 
-  revalidatePath(`/`);
+    await publishToFollowers(post.accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "liked",
+        postId,
+        accountId,
+        liked: res.liked,
+        likesCount,
+      },
+    });
+  }
 
   return res;
 };

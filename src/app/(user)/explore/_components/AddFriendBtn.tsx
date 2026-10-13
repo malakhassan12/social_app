@@ -1,68 +1,56 @@
 "use client";
 
-import { makeFollow } from "@/actions/Follow/makeFollow";
-import { Button } from "@/components/ui/button";
-import { FollowResponse } from "@/types/follow.Types";
-import { getButtonStyle, getIcon, getText } from "@/utils/makeFollowsThemes";
+import createFollowRequest from "@/actions/FollowRequest/createFollowRequest";
+import { FollowRequestEnum } from "@/types/enum/follow-req.enum";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { FC, useTransition } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { getButtonStyle, getIcon, getText } from "@/utils/makeFollowsThemes";
 
-const AddFriendBtn = ({
-  followingId,
-  followStatus,
-}: {
+type AddFriendProp = {
+  friendShipStatus: FollowRequestEnum;
   followingId: string;
-  followStatus: "PENDING" | "ACCEPTED" | null;
-}) => {
-  const [status, setStatus] = useState(followStatus);
+};
+
+const AddFriendBtn: FC<AddFriendProp> = ({ friendShipStatus, followingId }) => {
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
-  const handleFollow = () => {
+  const handleRequestFollow = () => {
     startTransition(async () => {
-      const res = (await makeFollow(followingId)) as FollowResponse;
+      const res = await createFollowRequest(followingId);
 
       if (res.success) {
-        setStatus(res.followed ? "PENDING" : null);
-        toast.success(res.followed ? "Request sent" : "Unfollowed");
+        const message =
+          friendShipStatus === FollowRequestEnum.NOT_EXIST
+            ? "Request sent successfully"
+            : "Un-friendship successfully";
+        toast.success(message);
         router.refresh();
       } else {
-        toast.error(res?.error?.message);
+        toast.error(res?.errors?.message || "Something went wrong");
       }
     });
   };
 
+  // Get status info using utility functions
+  const buttonStyle = getButtonStyle({ pending, status: friendShipStatus });
+  const icon = getIcon({ pending, status: friendShipStatus });
+  const text = getText({ pending, status: friendShipStatus });
+
   return (
     <Button
+      onClick={handleRequestFollow}
       disabled={pending}
-      onClick={handleFollow}
-      className={`w-full mt-3 h-8 gap-1.5 rounded-full text-xs font-medium transition-all duration-300 ${getButtonStyle(
-        {
-          pending,
-          status,
-        },
-      )} disabled:opacity-50 disabled:cursor-not-allowed`}
+      size="sm"
+      className={`${buttonStyle} w-fit`}
     >
-      {pending ? (
-        <>
-          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-          <span>Loading...</span>
-        </>
-      ) : (
-        <>
-          {getIcon({
-            pending,
-            status,
-          })}
-          <span>
-            {getText({
-              pending,
-              status,
-            })}
-          </span>
-        </>
-      )}
+      <div className="flex items-center gap-2">
+        {icon && <span className="shrink-0">{icon}</span>}
+
+        <span className="whitespace-nowrap">{text}</span>
+      </div>
     </Button>
   );
 };

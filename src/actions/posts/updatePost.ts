@@ -1,20 +1,20 @@
 "use server";
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
 import { FormState } from "@/types/form.Types";
 import { validateCreatePost } from "@/utils/postValidation";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 async function updatePost(
   postId: string,
   prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -25,8 +25,6 @@ async function updatePost(
 
   const desc = formData.get("desc") as string;
   const isPrivate = formData.get("isPrivate") === "true";
-
-  console.log("isPrivate",isPrivate)
 
   const images = formData
     .getAll("images")
@@ -53,7 +51,7 @@ async function updatePost(
   );
 
   try {
-    await prisma.post.update({
+    const post = await prisma.post.update({
       where: { id: postId },
       data: {
         desc,
@@ -63,11 +61,18 @@ async function updatePost(
       },
     });
 
-    revalidatePath(`/api/post`);
+    await publishToFollowers(accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "updated",
+        postId: post.id,
+      },
+    });
+
+    // revalidatePath(`/api/post`);
+
     return {
       success: true,
     };
-
   } catch {
     return {
       success: false,

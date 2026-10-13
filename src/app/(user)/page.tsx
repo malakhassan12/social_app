@@ -1,21 +1,30 @@
-import CreatePostBar from "@/components/Bar/CreatePostBar";
-import PostsSection from "./_components/Post/PostsSection";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import PostsSkeleton from "@/components/Skelton/PostsSkeleton";
+import Posts from "./_components/Post/Posts";
+import CreatePostBarContainer from "./_components/Post/CreatePostBarContainer";
+import CreatePostBarSkeleton from "@/components/Skelton/CreatePostBarSkeleton";
 
 export const metadata: Metadata = {
   title: "Home Page",
 };
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+}) {
   return (
     <>
-      <CreatePostBar />
-      <br />
+      <Suspense fallback={<CreatePostBarSkeleton />}>
+        <CreatePostBarContainer />
+      </Suspense>
+      <div className="h-4" aria-hidden="true" />
       <Suspense fallback={<PostsSkeleton />}>
-        <PostsSection />
-      </Suspense>{" "}
+        <Posts searchParams={searchParams} />
+      </Suspense>
     </>
   );
 }

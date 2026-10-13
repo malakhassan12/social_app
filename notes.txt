@@ -1,8 +1,140 @@
 
 
 
-I have problem with the synchrouns of the events with likes , shares ,  follows , and suggestions with requests 
+I will make 
+ - Any one can make Follow-up to any user, if account public.
+ - Can req connect To any one (public / private).
+ - Can't show profile details if an account is private.
 
 
 
-all except the messages , google login , 
+        Malak
+            - Malak@1234.com -> Email
+                - Malak112
+                - Moka113
+                - Miko114
+(True)--
+            - Moka@1234.com -> Email
+                - Malak120
+                - Moka121
+                - Miko122
+
+
+        when make sign-up :
+            add the email with info of the account;
+(True)--
+        when make login :
+            add email and select the account realted with that email;
+
+
+User
+ │
+ ├── UserEmail 1
+ │      ├── Account A
+ │      └── Account B
+ │
+ ├── UserEmail 2
+ │      ├── Account C
+ │      └── Account D
+ │
+ └── UserEmail 3
+        └── Account E
+
+
+
+
+
+
+(True)-- I have problem with the synchrouns of the events with likes , shares ,  follows , and suggestions with requests 
+
+
+
+
+(True)-- When an account private can't show posts or any things , and should make request !
+
+(True)-- When account is private can't any one except the friends show the profile.
+
+
+
+
+
+
+
+ 
+
+
+
+
+Handle folders and files.
+Handle UI .
+Handle router refresh. (Done yet , since show Performance)
+    - LoginForm
+
+
+// Store actions of chat !!! in new table
+
+
+   ---------------------------------------------------
+   | DB optimization.                                 |
+   | Performance and caching.                         |
+   | SEO                                              |
+   ---------------------------------------------------
+
+
+---> Posts's in private account appear in search
+---> Account Status : SUSPENDED
+
+
+---> Chatting (Done)
+   ├── Allow Messages
+   └── Allow Group Additions
+
+
+
+
+
+
+
+
+
+------------------ "Settings" ------------------
+now
+
+Privacy (Done)
+   ├── Comments
+   │    ├── Allow comments on all posts
+   │    └── Allow comments on specific post
+   │
+   └── Account Type
+        ├── PUBLIC
+        └── PRIVATE
+
+
+Data (Done)
+   -  | Setting       | Based on schema   |ملاحظات                |
+      | Username      | ✅               | `Account.username`   |
+      | Name          | ✅               | `Account.name`       |
+      | Bio           | ✅               | `Account.bio`        |
+      | Profile image | ✅               | `Account.image`      |
+      | Country       | ✅               | `Account.country`    |
+      | Email         | ✅               | `UserEmail.email`    |
+      | Phone         | ✅               | `User.phone`         |
+     
+
+Chatting (Done)
+   ├── Allow Messages
+   └── Allow Group Additions
+
+
+Manage (Done)
+   ├── Switch Between Accounts
+   └── Account Status
+        ├── ACTIVE
+        ├── DEACTIVATED
+        └── SUSPENDED
+
+
+Security (Done)
+   ├── Sessions
+   └── Change PasswordAccount 
+

@@ -1,18 +1,21 @@
 "use server";
 
 import { NotificationType } from "@/generated/prisma/enums";
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
+import { getIo } from "@/lib/socket/getIo";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { revalidatePath } from "next/cache";
 
 const createNotification = async (notification: NOTIREQUEST) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
-      message: "Unauthorized",
       success: false,
+      errors: {
+        message: "Unauthorized",
+      },
     };
   }
 
@@ -20,7 +23,7 @@ const createNotification = async (notification: NOTIREQUEST) => {
     let creatorId = notification.creatorId;
 
     if (notification.notificationType == NotificationType.PUBLISHED) {
-      creatorId = userId;
+      creatorId = accountId;
     }
     await prisma.notification.create({
       data: {
@@ -30,13 +33,17 @@ const createNotification = async (notification: NOTIREQUEST) => {
 
         notificationType: notification.notificationType,
 
-        userId: notification.userId,
+        receiverId: notification.receiverId,
 
         creatorId: creatorId,
 
         postId: notification.postId,
       },
     });
+
+    const io = getIo();
+
+    io.to(`account:${notification.receiverId}`).emit("publish:notification");
     revalidatePath("/notification");
 
     return {

@@ -15,7 +15,7 @@ export async function uploadToCloudinary(file: File,) {
       },
       (error, result) => {
         if (error) {
-          console.error("Cloudinary Error:", error);
+          // console.error("Cloudinary Error:", error);
           return reject(error);
         }
 

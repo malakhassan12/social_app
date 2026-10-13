@@ -1,23 +1,120 @@
+// "use server";
+
+// import { AccountType } from "@/generated/prisma/enums";
+// import prisma from "@/lib/prisma";
+// import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
+// import { FormState } from "@/types/form.Types";
+// import { validateCreatePost } from "@/utils/postValidation";
+// import { revalidatePath } from "next/cache";
+// import { getAccountId } from "@/helper/getAccountId";
+// import publishToFollowers from "../socket/publish-to-followers";
+// import { TypePublishSocket } from "@/lib/socket/socket.types";
+// import { Post } from "@/types/post.Types";
+
+// export async function createPost(
+//   prevState: FormState,
+//   formData: FormData,
+// ): Promise<FormState> {
+//   const accountId = await getAccountId();
+
+//   if (!accountId) {
+//     return {
+//       success: false,
+//       errors: {
+//         message: "Unauthorized",
+//       },
+//     };
+//   }
+
+//   const account = await prisma.account.findFirst({
+//     where: {
+//       id: accountId,
+//     },
+//     select: {
+//       type: true,
+//     },
+//   });
+
+//   const desc = formData.get("desc") as string;
+
+//   const isPrivate = (formData.get("isPrivate") as string) === "true";
+
+//   const images = formData
+//     .getAll("images")
+//     .filter((file) => file instanceof File) as File[];
+
+//   const videos = formData
+//     .getAll("videos")
+//     .filter((file) => file instanceof File) as File[];
+
+//   const errors: FormState["errors"] = {};
+
+//   validateCreatePost(desc, images, videos, errors);
+
+//   if (Object.keys(errors).length) {
+//     return {
+//       success: false,
+//       errors,
+//     };
+//   }
+
+//   // upload هنا
+//   const imageUrls = await Promise.all(
+//     images.map((file) => uploadToCloudinary(file)),
+//   );
+
+//   const videoUrls = await Promise.all(
+//     videos.map((file) => uploadToCloudinary(file)),
+//   );
+
+//   const post = await prisma.post.create({
+//     data: {
+//       desc,
+
+//       image: imageUrls,
+
+//       video: videoUrls,
+
+//       accountId,
+
+//       isPrivate: account?.type === AccountType.PRIVATE ? true : isPrivate,
+//     },
+//   });
+
+//   revalidatePath(`/api/post`);
+
+//   await publishToFollowers(accountId, TypePublishSocket.POST, {
+//     post: post as unknown as Post,
+//   });
+
+//   return {
+//     success: true,
+//   };
+// }
+
 "use server";
 
-import { NotificationType } from "@/generated/prisma/enums";
-import { getUserId } from "@/helper/getUserId";
+import { AccountType } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { uploadToCloudinary } from "@/lib/upload/uploadToCloudinary";
 import { FormState } from "@/types/form.Types";
-import { NOTIREQUEST } from "@/types/notification.Types";
-import { validateCreatePost } from "@/utils/postValidation";
-import { revalidatePath } from "next/cache";
-import { createNotification } from "../notification/createNotification";
-import { redirect } from "next/navigation";
+import { getAccountId } from "@/helper/account/getAccountId";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
+import { Post } from "@/types/post.Types";
+import {
+  CreatePostActionState,
+  createPostSchema,
+} from "@/lib/schema/Create-post.schema";
+import getAccount from "@/helper/account/getAccount";
 
 export async function createPost(
   prevState: FormState,
   formData: FormData,
-): Promise<FormState> {
-  const userId = await getUserId();
+): Promise<CreatePostActionState> {
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -26,29 +123,34 @@ export async function createPost(
     };
   }
 
-  const desc = formData.get("desc") as string;
+  const account = await getAccount(accountId);
 
-  const images = formData
-    .getAll("images")
-    .filter((file) => file instanceof File) as File[];
+  // Convert FormData to object
+  const descValue = formData.get("desc");
+  const form = {
+    desc: typeof descValue === "string" ? descValue : undefined,
+    images:
+      formData
+        .getAll("images")
+        .filter((file): file is File => file instanceof File) || undefined,
+    videos:
+      formData
+        .getAll("videos")
+        .filter((file): file is File => file instanceof File) || undefined,
+  };
 
-  const videos = formData
-    .getAll("videos")
-    .filter((file) => file instanceof File) as File[];
+  const validationResult = createPostSchema.safeParse(form);
 
-  console.log(images, videos);
-  const errors: FormState["errors"] = {};
-
-  validateCreatePost(desc, images, videos, errors);
-
-  if (Object.keys(errors).length) {
+  if (!validationResult.success) {
     return {
       success: false,
-      errors,
+      form,
+      errors: validationResult.error.flatten().fieldErrors,
     };
   }
 
-  // upload هنا
+  const { desc, images, videos } = validationResult.data;
+
   const imageUrls = await Promise.all(
     images.map((file) => uploadToCloudinary(file)),
   );
@@ -60,28 +162,19 @@ export async function createPost(
   const post = await prisma.post.create({
     data: {
       desc,
-
       image: imageUrls,
-
       video: videoUrls,
-
-      authorId: userId,
+      accountId,
+      isPrivate:
+        account?.type === AccountType.PRIVATE
+          ? true
+          : formData.get("isPrivate") === "true",
     },
   });
 
-  if (post?.authorId) {
-    const notification: NOTIREQUEST = {
-      title: "New Post",
-      content: `published a post`,
-      creatorId: userId,
-      userId: userId,
-      notificationType: NotificationType.PUBLISHED,
-    };
-
-    await createNotification(notification);
-  }
-
-  revalidatePath(`/api/post`);
+  await publishToFollowers(accountId, TypePublishSocket.POST, {
+    post: post as unknown as Post,
+  });
 
   return {
     success: true,

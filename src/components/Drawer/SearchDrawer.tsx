@@ -16,13 +16,13 @@ import { Input } from "@/components/ui/input";
 
 import { Loader2, Search, X } from "lucide-react";
 
-import { User } from "@/types/profile.Types";
 import { Post } from "@/types/post.Types";
 import UserCard from "../Cards/UserCard";
 import PostCard from "../Cards/PostCard";
+import { Account } from "@/types/account.Types";
 
 interface SearchResponse {
-  users: User[];
+  accounts: Account[];
   posts: Post[];
 }
 
@@ -30,7 +30,7 @@ const SearchDrawer: FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<Account[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -61,7 +61,7 @@ const SearchDrawer: FC<{
 
         const data: SearchResponse = await res.json();
 
-        setUsers(data.users);
+        setUsers(data.accounts);
         setPosts(data.posts);
       } catch {
         // Handle error silently
@@ -140,7 +140,7 @@ const SearchDrawer: FC<{
                   </div>
                 )}
 
-              {!loading && users.length > 0 && (
+              {!loading && users?.length > 0 && (
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -151,8 +151,8 @@ const SearchDrawer: FC<{
                     </span>
                   </div>
                   <div className="space-y-1">
-                    {users.map((user) => (
-                      <UserCard key={user?.id} user={user} />
+                    {users?.map((user) => (
+                      <UserCard key={user?.id} account={user} />
                     ))}
                   </div>
                 </div>

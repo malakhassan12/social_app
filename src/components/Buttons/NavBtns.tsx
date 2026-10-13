@@ -1,31 +1,11 @@
-import { getUserId } from "@/helper/getUserId";
 import { ModeToggle } from "./ModeToggleBtn";
 import NotificationsBtn from "./NotificationsBtn";
 import ProfileBtn from "./ProfileBtn";
-import prisma from "@/lib/prisma";
-import { User } from "@/types/profile.Types";
+import getAccount from "@/helper/account/getAccount";
+import { Account } from "@/types/account.Types";
 
 const NavBtns = async () => {
-  const userId = (await getUserId()) as string;
-
-  const getUser = async () => {
-    "use cache";
-
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        image: true,
-        name: true,
-        email: true,
-        country: true,
-        bio: true,
-      },
-    });
-
-    return user;
-  };
-
-  const user = getUser();
+  const account = await getAccount();
 
   return (
     <>
@@ -36,7 +16,7 @@ const NavBtns = async () => {
       <NotificationsBtn />
 
       {/* Profile Popover (Settings, Logout, etc.) */}
-      <ProfileBtn user={user as unknown as User} />
+      <ProfileBtn account={account as unknown as Account} />
     </>
   );
 };

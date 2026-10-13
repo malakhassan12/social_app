@@ -1,42 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/account/getAccountId";
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = await getUserId();
+    const accountId = await getAccountId();
 
-    if (!userId) {
+    if (!accountId) {
       return NextResponse.json(
         {
           message: "Unauthorized",
         },
         {
           status: 401,
-        }
+        },
       );
     }
 
-    const search = req.nextUrl.searchParams
-      .get("search")
-      ?.trim();
+    const search = req.nextUrl.searchParams.get("search")?.trim();
 
     if (!search) {
       return NextResponse.json({
-        users: [],
+        accounts: [],
         posts: [],
       });
-
     }
 
-    console.log(search)
-    const [users, posts] = await Promise.all([
-      prisma.user.findMany({
+    console.log(search);
+    const [accounts, posts] = await Promise.all([
+      prisma.account.findMany({
         where: {
           AND: [
             {
               id: {
-                not: userId,
+                not: accountId,
               },
             },
             {
@@ -49,8 +46,10 @@ export async function GET(req: NextRequest) {
                 },
                 {
                   email: {
-                    contains: search,
-                    mode: "insensitive",
+                    email: {
+                      contains: search,
+                      mode: "insensitive",
+                    },
                   },
                 },
                 {
@@ -121,7 +120,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json({
-      users,
+      accounts,
       posts,
     });
   } catch (error) {
@@ -133,7 +132,7 @@ export async function GET(req: NextRequest) {
       },
       {
         status: 500,
-      }
+      },
     );
   }
 }

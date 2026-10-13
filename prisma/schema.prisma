@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 
 generator client {
   provider = "prisma-client"
@@ -9,257 +8,574 @@ datasource db {
   provider = "postgresql"
 }
 
-// ========================================
-// 🔹 USER MODEL
-// ========================================
+
+// ============================================================
+// USER
+// ============================================================
 
 model User {
-  id         String    @id @default(cuid())
-  email      String    @unique
-  name       String
-  country    String
-  bio        String?
-  image      String?
-  website    String?
-  password   String
-  phone      String
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id        String   @id @default(cuid())
+  phone     String?
 
-  // Relations
-  posts      Post[]
-  comments   Comment[]
-  followers  Follower[] @relation("FollowingUser")  // اللي متابعني
-  following  Follower[] @relation("FollowerUser")   // اللي أنا متابعهم
-  receivedNotifications Notification[] @relation("Receiver")
-  createdNotifications Notification[] @relation("Creator")
+  emails    UserEmail[]
 
-  sharesFrom Share[] @relation("shareFrom")
-  sharesTo Share[] @relation("shareTo")
+  sessions Session[]
 
-  conversations ConversationUser[]
-  messages Message[]
-  postLikes      PostLike[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+
+// ============================================================
+// USER EMAIL
+// ============================================================
+
+
+model UserEmail {
+  id       String @id @default(cuid())
+
+  email    String @unique
+
+  userId   String
+  user     User   @relation(fields: [userId],references: [id],onDelete: Cascade)
+
+  password String
+
+  accounts Account[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================================
+// ACCOUNT
+// ============================================================
+
+enum AccountType {
+  PRIVATE
+  PUBLIC
+}
+
+enum AccountStatus {
+  ACTIVE
+  DEACTIVATED
+  SUSPENDED
+}
+
+model Account {
+  id String @id @default(cuid())
+
+  // Owner
+  emailId String
+  email UserEmail @relation(fields: [emailId],references: [id], onDelete: Cascade)
+
+  sessions Session[]
+
+  // Profile
+  username String @unique
+  name     String
+  bio      String?
+  image    String?
+  website  String?
+  country  String
+
+  status AccountStatus @default(ACTIVE)
+
+
+  // Privacy
+  type AccountType @default(PUBLIC)
+
+  isOpenMessages Boolean @default(true) 
+
+  isOpenGroup Boolean @default(true) 
+
+  isOpenComments  Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ==========================================================
+  // SOCIAL RELATIONS
+  // ==========================================================
+
+  // Content
+  posts    Post[]
+  comments Comment[]
+
+  // Following
+  //
+  // followers = accounts following THIS account
+  // following = accounts THIS account follows
+  //
+  followers Follower[] @relation("FollowingAccount")
+  following Follower[] @relation("FollowerAccount")
+
+  // Follow requests
+  followRequestsSent     FollowRequest[] @relation("FollowRequestsSent")
+  followRequestsReceived FollowRequest[] @relation("FollowRequestsReceived")
+
+  // Likes
+  postLikes    PostLike[]
   commentLikes CommentLike[]
 
+  // Shares
+  sharesFrom Share[] @relation("ShareFrom")
+  sharesTo   Share[] @relation("ShareTo")
+
+  // Notifications
+  receivedNotifications Notification[] @relation("NotificationReceiver")
+  createdNotifications  Notification[] @relation("NotificationCreator")
+
+  // Messaging
+  conversationParticipants ConversationParticipant[]
+  messages                 Message[]
+
+  messageReaction MessageReaction[]
+
+  // Message reads
+  messageReads MessageRead[]
+
+  @@index([emailId])
+  @@index([username])
+  @@index([id, createdAt])
 }
 
-// ========================================
-// 🔹 FOLLOWER MODEL (Many-to-Many Self)
-// ========================================
+
+// ============================================================
+// FOLLOWER
+// ============================================================
+  // Malak follows Ahmed
+  // followerId     followingId
+  // Malak          Ahmed
 
 model Follower {
-  id            String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  followerId    String
-  followingId   String
+  followerId  String
+  followingId String
 
-  status        FollowStatus @default(PENDING)
+  follower Account @relation( "FollowerAccount", fields: [followerId], references: [id], onDelete: Cascade)
 
-  createdAt     DateTime @default(now())
+  following Account @relation( "FollowingAccount",fields: [followingId], references: [id], onDelete: Cascade )
 
+  createdAt DateTime @default(now())
 
-  follower      User @relation("FollowerUser", fields: [followerId], references: [id], onDelete: Cascade)
-  following     User @relation("FollowingUser", fields: [followingId], references: [id], onDelete: Cascade)
-
-
+  // An account cannot follow another account twice.
   @@unique([followerId, followingId])
-  @@index([followingId])
+
   @@index([followerId])
+  @@index([followingId])
 }
 
 
-enum FollowStatus {
+// ============================================================
+// FOLLOW REQUEST = Connection = friend Ship
+// ============================================================
+
+enum FollowRequestStatus {
   PENDING
   ACCEPTED
   REJECTED
 }
 
-// ========================================
-// 🔹 LIKE MODEL 
-// ========================================
+model FollowRequest {
+  id String @id @default(cuid())
+
+  requesterId String
+  receiverId  String
+
+  requester Account @relation("FollowRequestsSent", fields: [requesterId], references: [id], onDelete: Cascade)
+
+  receiver Account @relation("FollowRequestsReceived",fields: [receiverId],references: [id],onDelete: Cascade )
+
+  status FollowRequestStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Only one active relationship/request between
+  // the same two accounts.
+  @@unique([requesterId, receiverId])
+
+  @@index([receiverId, status])
+  @@index([requesterId, status])
+}
+
+
+// ============================================================
+// POST
+// ============================================================
+
+model Post {
+  id String @id @default(cuid())
+
+  desc String @db.Text
+
+  image String[]
+  video String[]
+
+  // If your product supports private posts independently
+  // from a private account.
+  isPrivate Boolean @default(false)
+
+
+  isOpenComments Boolean @default(true)
+
+  accountId String
+
+  author Account @relation( fields: [accountId],references: [id],onDelete: Cascade)
+
+  likes         PostLike[]
+  comments      Comment[]
+  notifications Notification[]
+  shares        Share[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([accountId])
+  @@index([createdAt])
+  @@index([accountId, createdAt])
+
+}
+
+
+// ============================================================
+// POST LIKE
+// ============================================================
+
 model PostLike {
   id String @id @default(cuid())
 
-  userId String
-  postId String
+  accountId String
+  postId    String
 
-  user User @relation( fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId],  references: [id],  onDelete: Cascade)
+
+  post Post @relation(fields: [postId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // One account can like a post only once.
+  @@unique([accountId, postId])
+
+  @@index([postId])
+  @@index([accountId])
+}
+
+
+// ============================================================
+// COMMENT
+// ============================================================
+
+model Comment {
+  id String @id @default(cuid())
+
+  content String @db.Text
+
+  isRemoved Boolean @default(false)
+
+  removedAt DateTime?
+
+
+  accountId String
+  postId    String
+
+  author Account @relation( fields: [accountId], references: [id], onDelete: Cascade)
+
+  post Post @relation(fields: [postId],references: [id],onDelete: Cascade)
+
+  likes CommentLike[]
+
+  createdAt DateTime @default(now())
+
+  @@index([postId])
+  @@index([accountId])
+  @@index([postId, createdAt])
+}
+
+
+// ============================================================
+// COMMENT LIKE
+// ============================================================
+
+model CommentLike {
+  id String @id @default(cuid())
+
+  accountId String
+  commentId String
+
+  account Account @relation(fields: [accountId],references: [id],onDelete: Cascade)
+
+  comment Comment @relation(fields: [commentId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // One account can like a comment only once.
+  @@unique([accountId, commentId])
+
+  @@index([commentId])
+  @@index([accountId])
+}
+
+
+// ============================================================
+// SHARE
+// ============================================================
+
+model Share {
+  id String @id @default(cuid())
+
+  shareFromId String
+  shareToId   String
+  postId      String
+
+  isOpen Boolean @default(false) 
+
+
+  shareFrom Account @relation("ShareFrom",fields: [shareFromId],references: [id],onDelete: Cascade)
+
+  shareTo Account @relation("ShareTo",fields: [shareToId],references: [id],onDelete: Cascade)
 
   post Post @relation( fields: [postId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
-  @@unique([userId, postId])
-  @@index([postId])
-}
-
-
-
-model CommentLike {
-  id String @id @default(cuid())
-
-  userId String
-  commentId String
-
-  user User @relation( fields: [userId], references: [id], onDelete: Cascade)
-
-  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, commentId])
-  @@index([commentId])
-}
-// ========================================
-// 🔹 POST MODEL
-// ========================================
-model Post {
-  id         String    @id @default(cuid())
-  desc       String    @db.Text
-  image      String[]
-  video      String[] 
-  isPrivate  Boolean   @default(false)
-  likes      PostLike[]
-  authorId   String   
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-
-  // Relations
-  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  comments   Comment[]
-  notifications Notification[]
-  shares Share[]
-
-
-
-  @@index([authorId])
-}
-
-// ========================================
-// 🔹 Share MODEL
-// ========================================
-model Share {
-  id String @id @default(cuid())
-
-  shareFromId String
-  shareToId String
-
-  postId String
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
-
-  shareFrom User @relation("shareFrom",fields: [shareFromId],references: [id],onDelete: Cascade)
-
-  shareTo User @relation("shareTo",fields: [shareToId],references: [id],onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-
   @@index([shareFromId])
   @@index([shareToId])
-}
-
-// ========================================
-// 🔹 COMMENT MODEL
-// ========================================
-model Comment {
-  id         String    @id @default(cuid())
-  content    String    @db.Text
-  likes      CommentLike[]
-  postId     String    
-  authorId   String  
-  createdAt  DateTime  @default(now())
-
-  // Relations
-
-  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author     User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
-
   @@index([postId])
-  @@index([authorId])
 }
 
-// ========================================
-// 🔹 Notification MODEL
-// ========================================
 
+// ============================================================
+// NOTIFICATION
+// ============================================================
 
-enum NotificationType{
+enum NotificationType {
   LIKE
   COMMENT
   FOLLOW
   PUBLISHED
+  SHARE
+  FRIEND
 }
 
 model Notification {
-  id         String    @id @default(cuid())
-  title      String
-  content    String
+  id String @id @default(cuid())
+
+  title   String
+  content String
+
   notificationType NotificationType
-  userId     String   
+
+  receiverId String
   creatorId  String
-  postId     String?
-  createdAt  DateTime  @default(now())
-  read       Boolean   @default(false)  
 
-  // Relations
-  user       User      @relation("Receiver",fields: [userId], references: [id], onDelete: Cascade)
-  creator    User      @relation("Creator",fields: [creatorId], references: [id], onDelete: Cascade)
-  post       Post?     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String?
 
-  @@index([userId])
+  read Boolean @default(false)
 
+  receiver Account @relation("NotificationReceiver",fields: [receiverId],references: [id],onDelete: Cascade)
+
+  creator Account @relation("NotificationCreator",fields: [creatorId],references: [id],onDelete: Cascade)
+
+  post Post? @relation(fields: [postId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+
+  @@index([receiverId, createdAt])
+
+  @@index([receiverId, read, createdAt])
+  @@index([creatorId])
+  @@index([postId])
 }
 
-// ========================================
-// 🔹 CONVERSATION MODEL (Container of the messages and users)
-// ========================================
+
+// ============================================================
+// CONVERSATION
+// ============================================================
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
 model Conversation {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id String @id @default(cuid())
 
-  users      ConversationUser[]
-  messages   Message[]
+  name String? 
+
+  ownerId String?
+
+  image String?
+  
+  type ConversationType @default(DIRECT)
+
+  isOpen  Boolean @default(true) //  By admin only can make that 
+
+  isRemoved Boolean @default(false)
+
+  removedAt DateTime?
+
+  isOpenAddition  Boolean @default(true) //  By admin only can make that and in type Group
+
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// ========================================
-// 🔹 CONVERSATION USER 
-// ========================================
 
-model ConversationUser {
-  id              String   @id @default(cuid())
-  conversationId  String
-  userId          String
-  joinedAt        DateTime @default(now())
+// ============================================================
+// CONVERSATION PARTICIPANT
+// ============================================================
 
-  // Relations
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // User can't enter the same conversion more than one 
-  @@unique([conversationId, userId]) 
-
-  @@index([userId])
+enum ConversationParticipantType {
+  REMOVED
+  EXIST
 }
 
-// ========================================
-// 🔹 MESSAGE MODEL 
-// ========================================
+model ConversationParticipant {
+  id String @id @default(cuid())
+
+  conversationId String
+  accountId      String
+
+  conversation Conversation @relation(fields: [conversationId],references: [id],onDelete: Cascade)
+
+  account Account @relation(fields: [accountId],references: [id],onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  isAdmin Boolean @default(false)
+
+  type ConversationParticipantType @default(EXIST)
+
+  // The same account cannot join the same conversation twice.
+  @@unique([conversationId, accountId])
+
+  @@index([accountId])
+}
+
+
+// ============================================================
+// MESSAGE
+// ============================================================
 
 model Message {
-  id              String    @id @default(cuid())
-  content         String    @db.Text
-  senderId        String
-  conversationId  String
-  read            Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id String @id @default(cuid())
 
-  // Relations
-  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  content String @db.Text
 
-  @@index([conversationId,createdAt])
+  image String?
+
+  senderId       String
+  conversationId String
+
+  // Reply
+  replyToMessageId String?
+  replyToMessage   Message? @relation("MessageReplies",fields: [replyToMessageId],references: [id],onDelete: SetNull)
+
+  replies Message[] @relation("MessageReplies")
+
+  sender Account @relation(fields: [senderId],references: [id],onDelete: Cascade)
+
+  conversation Conversation @relation(fields: [conversationId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messageReads MessageRead[]
+  messageReactions MessageReaction[]
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([replyToMessageId])
+}
+
+enum MessageReactionType {
+  LIKE
+  LOVE
+  LAUGH
+  WOW
+  SAD
+  ANGRY
+  CELEBRATE
+}
+
+model MessageReaction {
+  id String @id @default(cuid())
+
+  accountId String
+  messageId String
+
+  isLiked Boolean @default(false)
+
+  type MessageReactionType
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade )
+
+  message Message @relation(fields: [messageId],references: [id],onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // One reaction of one type per account per message
+  @@unique([accountId, messageId])
+  
+  @@index([messageId])
+  @@index([accountId])
+}
+
+
+// ============================================================
+// MESSAGE READ
+// ============================================================
+
+model MessageRead {
+  id String @id @default(cuid())
+
+  messageId String
+  accountId String
+
+  message Message @relation(fields: [messageId],references: [id],onDelete: Cascade)
+
+  account Account @relation(fields: [accountId],references: [id],onDelete: Cascade)
+
+  readAt DateTime @default(now())
+
+  // An account can mark a specific message as read once.
+  @@unique([messageId, accountId])
+
+  @@index([accountId])
+}
+
+
+// ============================================================
+// SESSION
+// ============================================================
+
+model Session {
+  id String @id @default(cuid())
+
+  userId String
+  accountId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  userAgent String?
+  ipAddress String?
+
+  createdAt DateTime @default(now())
+  lastActiveAt DateTime @default(now())
+  expiresAt DateTime
+
+  revokedAt DateTime?
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([expiresAt])
 }

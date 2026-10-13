@@ -1,10 +1,9 @@
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
 import Requests from "./_components/Requests";
 import Suggestions from "./_components/Suggestions";
 import { Metadata } from "next";
 import { Suspense } from "react";
 import SuggestionsSkeleton from "@/components/Skelton/SuggestionsSkeleton";
+import RequestsSkeleton from "@/components/Skelton/requestsSkelton";
 
 export const metadata: Metadata = {
   title: "Explore page",
@@ -21,12 +20,14 @@ const Page = () => {
       </div>
 
       {/* Friend Requests */}
-      <Requests />
+      <Suspense fallback={<RequestsSkeleton />}>
+        <Requests />
+      </Suspense>
 
       {/* Suggested Friends */}
 
-      <Suspense fallback={<SuggestionsSkeleton/>}>
-        <Suggestions rightPanel={true} />
+      <Suspense fallback={<SuggestionsSkeleton />}>
+        <Suggestions  />
       </Suspense>
     </div>
   );

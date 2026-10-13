@@ -1,13 +1,14 @@
 "use server";
 
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 export const deletePost = async (postId: string) => {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -15,13 +16,43 @@ export const deletePost = async (postId: string) => {
       },
     };
   }
+
   try {
+    const post = await prisma.post.findFirst({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (!post) {
+      return {
+        success: false,
+        errors: {
+          message: "Not exist post ",
+        },
+      };
+    }
+
+    if (post.accountId !== accountId) {
+      return {
+        success: false,
+        errors: {
+          message: "Not authorize to delete that post ",
+        },
+      };
+    }
+
     await prisma.post.delete({
       where: {
         id: postId,
       },
     });
-    revalidatePath(`/api/post`);
+    await publishToFollowers(accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "deleted",
+        postId,
+      },
+    });
 
     return {
       success: true,

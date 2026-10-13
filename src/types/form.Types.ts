@@ -1,12 +1,7 @@
-
 export type FormState = {
   errors?: {
-    message? :string
+    message?: string;
   };
+  data?: object ;
   success?: boolean;
 };
-
-
-
-
-

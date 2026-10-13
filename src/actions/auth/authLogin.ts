@@ -1,17 +1,16 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { createSession } from "@/lib/session";
 import { FormState } from "@/types/form.Types";
 import { validateLogin } from "@/utils/authValidation";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
 
 export async function authLogin(
   prevState: FormState,
   formData: FormData,
 ): Promise<FormState> {
   const email = formData.get("email") as string;
+  // const accountId = formData.get('accountId') as string;
   const password = formData.get("password") as string;
 
   const errors: FormState["errors"] = {};
@@ -25,22 +24,22 @@ export async function authLogin(
     };
   }
 
-  const user = await prisma.user.findUnique({
+  const emailExist = await prisma.userEmail.findUnique({
     where: {
       email,
     },
   });
 
-  if (!user) {
+  if (!emailExist) {
     return {
       errors: {
-        message: "User not found",
+        message: "Email not found in the system",
       },
       success: false,
     };
   }
 
-  const match = await bcrypt.compare(password, user.password);
+  const match = await bcrypt.compare(password, emailExist.password);
 
   if (!match) {
     return {
@@ -50,22 +49,18 @@ export async function authLogin(
     };
   }
 
-  // create session id
-  const sessionId = await createSession(user?.id);
-
-  // save session in cookie
-
-  const cookieStore = await cookies();
-
-  cookieStore.set("token", sessionId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7,
-    path: "/",
+  const user = await prisma.user.findFirst({
+    where: {
+      emails: {
+        some: {
+          id: emailExist.id,
+        },
+      },
+    },
   });
 
   return {
     success: true,
+    data: { emailId: emailExist.id, userId: user?.id },
   };
 }

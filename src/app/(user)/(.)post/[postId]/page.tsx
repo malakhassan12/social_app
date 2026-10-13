@@ -1,73 +1,63 @@
-import Link from "next/link";
-import { X } from "lucide-react";
+import { notFound } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import PostHeader from "../../_components/Post/PostHeader";
 import PostContent from "../../_components/Post/PostContent";
 import SocialBtns from "../../_components/Post/SocialBtns";
 import CommentsContent from "../../_components/Comment/CommentsContent";
 import CommentInput from "../../_components/Comment/CommentInput";
+import { Suspense } from "react";
+import PostModalSkeleton from "@/components/Skelton/PostModalSkeleton";
+import { Account } from "@/types/account.Types";
+import getAccount from "@/helper/account/getAccount";
+import { getPost } from "@/helper/post/getPost";
+import { getComments } from "@/helper/comment/getComments";
+import { Post } from "@/types/post.Types";
+import { Comment } from "@/types/comment.Types";
+import BackBtn from "@/components/Buttons/BackBtn";
 
-const PostModal = async ({
+const PostModalContent = async ({
   params,
 }: {
   params: Promise<{ postId: string }>;
 }) => {
   const { postId } = await params;
 
-  const [postData, commentsData] = await Promise.all([
-    fetch(`${process.env.API_V1}/api/post/${postId}`).then(async (res) => {
-      if (!res.ok) {
-        const error = await res
-          .json()
-          .catch(() => ({ message: "Failed to fetch post" }));
-        throw new Error(error.message || `Failed to fetch post: ${res.status}`);
-      }
-      return res.json();
-    }),
-    fetch(`${process.env.API_V1}/api/comment/${postId}`).then(async (res) => {
-      if (!res.ok) {
-        const error = await res
-          .json()
-          .catch(() => ({ message: "Failed to fetch comments" }));
-        throw new Error(
-          error.message || `Failed to fetch comments: ${res.status}`,
-        );
-      }
-      return res.json();
-    }),
+  const [post, comments] = await Promise.all([
+    getPost(postId),
+    getComments(postId),
   ]);
-  const post = postData?.post;
-  const comments = commentsData?.comments || [];
-  const commentCount = comments.length;
 
+  if (post === null) {
+    notFound();
+  }
+
+  const commentCount = comments?.length;
+
+  const account = await getAccount();
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <Card className="bg-white dark:bg-[#1a1a2e] rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
-          <PostHeader post={post} />
-          <Link
-            href="/"
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-          >
-            <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-          </Link>
+          <PostHeader post={post as unknown as Post} />
+
+          <BackBtn />
         </div>
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          {/* Post Content */}
-          <PostContent post={post} />
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar:none]">
+          <PostContent post={post as unknown as Post} />
 
-          {/* Social Actions */}
-          <SocialBtns post={post} showComment={false} />
-          {/* Comments Section */}
+          <SocialBtns
+            post={post as unknown as Post}
+            showComment={false}
+            account={account as unknown as Account}
+          />
+
           <div className="space-y-3 pt-3 border-t border-gray-100 dark:border-gray-800">
-            {/* Comments Header */}
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Comments
               </h3>
+
               <span className="text-xs text-gray-400 dark:text-gray-500">
                 {commentCount === 0
                   ? "No comments yet"
@@ -77,11 +67,15 @@ const PostModal = async ({
               </span>
             </div>
 
-            {/* Comments List */}
-            <CommentsContent comments={comments} />
+            <CommentsContent
+              comments={comments as unknown as Comment[]}
+              accountId={account?.id as string}
+            />
 
-            {/* Comment Input */}
-            <CommentInput postId={post?.id} />
+            <CommentInput
+              postId={post?.id}
+              account={account as unknown as Account}
+            />
           </div>
         </div>
       </Card>
@@ -89,4 +83,14 @@ const PostModal = async ({
   );
 };
 
-export default PostModal;
+export default function PostModal({
+  params,
+}: {
+  params: Promise<{ postId: string }>;
+}) {
+  return (
+    <Suspense fallback={<PostModalSkeleton />}>
+      <PostModalContent params={params} />
+    </Suspense>
+  );
+}

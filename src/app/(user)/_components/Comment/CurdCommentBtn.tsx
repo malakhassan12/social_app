@@ -12,16 +12,18 @@ import { Comment } from "@/types/comment.Types";
 
 const CurdCommentBtn: FC<{
   comment: Comment;
-}> = ({ comment }) => {
+  onUpdated: (content: string) => void;
+}> = ({ comment, onUpdated }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
+          aria-label="Comment options"
           className="h-8 w-8 rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 transition-colors"
         >
-          <MoreHorizontal className="h-4 w-4" />
+          <MoreHorizontal aria-hidden="true" className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -30,7 +32,7 @@ const CurdCommentBtn: FC<{
       >
         <div className="space-y-0.5">
           {/* Edit Button */}
-          <UpdateCommentBtn comment={comment} />
+          <UpdateCommentBtn comment={comment} onUpdated={onUpdated} />
 
           {/* Divider */}
           <div className="my-1 h-px bg-gray-100 dark:bg-gray-800" />

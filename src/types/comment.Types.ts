@@ -1,5 +1,5 @@
+import { Account } from "./account.Types";
 import { Post } from "./post.Types";
-import { User } from "./profile.Types";
 
 export type Like = {
   id: string;
@@ -11,7 +11,7 @@ export type Like = {
 
   createdAt: string | Date;
 
-  user: User;
+  account: Account;
 
   post?: Post | null;
 
@@ -23,15 +23,19 @@ export type Comment = {
 
   content: string;
 
-  likes: Like[];
+  isRemoved? : boolean,
+
+  isLiked? : boolean
+
+  likes?: Like[];
 
   postId: string;
 
-  authorId: string;
+  accountId: string;
 
   createdAt: string | Date;
 
-  author: User;
+  author: Account;
 
   post?: Post;
 };

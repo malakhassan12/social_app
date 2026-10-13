@@ -1,124 +1,98 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserPlus, MapPin } from "lucide-react";
-import prisma from "@/lib/prisma";
-import { getUserId } from "@/helper/getUserId";
-import ProfileAvatar from "@/components/Avatar/ProfileAvatar";
-import AddFriendBtn from "./AddFriendBtn";
-import { getFollow } from "@/helper/getFollow";
+import { ChevronRight, UserPlus } from "lucide-react";
+import getSuggestions, {
+  SuggestionAccount,
+} from "@/helper/suggestion/getSuggestions";
+import checkFollowStatus from "@/helper/follow/checkFollowStatus";
+import getStatusOfRequest from "@/helper/friend/getStatusOfRequest";
+import { FollowRequestEnum } from "@/types/enum/follow-req.enum";
+import SuggestionItem from "./SuggestionsItem";
+import { Account } from "@/types/account.Types";
+import { getAccountId } from "@/helper/account/getAccountId";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const Suggestions = async ({
   rightPanel = false,
 }: {
   rightPanel?: boolean;
 }) => {
-  const userId = (await getUserId()) as string;
+  const accountId = await getAccountId();
+  const { suggestions } = await getSuggestions(accountId as string);
 
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      id: true,
-      country: true,
-    },
-  });
+  // Fetch follow and request status for all suggestions in parallel
+  const suggestionsWithStatus = await Promise.all(
+    suggestions.map(async (suggestion: SuggestionAccount) => {
+      const [followStatus, requestStatus] = await Promise.all([
+        checkFollowStatus(suggestion.id, accountId as string),
+        getStatusOfRequest(suggestion.id, accountId as string),
+      ]);
+      return {
+        ...suggestion,
+        followStatus: Boolean(followStatus?.status),
+        requestStatus: requestStatus.status as FollowRequestEnum,
+      };
+    }),
+  );
 
-  const users = await prisma.user.findMany({
-    where: {
-      country: user?.country,
-      NOT: {
-        id: userId,
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      image: true,
-      email: true,
-      country: true,
-    },
-  });
-
-  // If no users from same country, show random users
-  const suggestions =
-    users.length > 0
-      ? users
-      : await prisma.user.findMany({
-          where: {
-            NOT: {
-              id: userId,
-            },
-          },
-          take: 6,
-          select: {
-            id: true,
-            name: true,
-            image: true,
-            email: true,
-            country: true,
-          },
-        });
+  const isEmpty = suggestionsWithStatus.length === 0;
 
   return (
-    <Card className="border border-gray-200 dark:border-gray-800 shadow-sm">
+    <Card className="border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2">
-          <UserPlus className="h-5 w-5 text-purple-500" />
-          Suggested for You
-          <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full">
-            {suggestions.length}
-          </span>
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-purple-500" />
+            Suggested for You
+            {!isEmpty && (
+              <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full">
+                {suggestionsWithStatus.length}
+              </span>
+            )}
+          </CardTitle>
+
+          {!isEmpty && !rightPanel && (
+            <Link href="/suggestions">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full px-3 h-8 transition-all duration-200"
+              >
+                Show All
+                <ChevronRight className="h-3.5 w-3.5 ml-1" />
+              </Button>
+            </Link>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        {suggestions.length === 0 ? (
-          <div className="text-center py-8">
+        {isEmpty ? (
+          <div className="text-center py-12">
+            <UserPlus className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
             <p className="text-sm text-gray-400 dark:text-gray-500">
               No suggestions available
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              Check back later for new people to follow
             </p>
           </div>
         ) : (
           <div
             className={
               rightPanel
-                ? "grid grid-cols-1 gap-3"
-                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                ? "flex flex-col gap-3"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4"
             }
           >
-            {suggestions.map(async (suggestion) => {
-              const followStatus = await getFollow(suggestion?.id);
-              return (
-                <div
-                  key={suggestion.id}
-                  className="flex flex-col items-center p-4 rounded-xl border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all hover:border-purple-200 dark:hover:border-purple-900/50"
-                >
-                  <ProfileAvatar
-                    image={suggestion.image}
-                    name={suggestion.name}
-                  />
-
-                  <p className="font-medium text-sm mt-2 text-gray-900 dark:text-white">
-                    {suggestion.name}
-                  </p>
-
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {suggestion.email}
-                  </span>
-
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <MapPin className="h-3 w-3 text-gray-400" />
-                    <span className="text-xs text-gray-400">
-                      {suggestion.country || "Unknown"}
-                    </span>
-                  </div>
-
-                  <AddFriendBtn
-                    followingId={suggestion.id}
-                    followStatus={followStatus as "PENDING" | "ACCEPTED" | null}
-                  />
-                </div>
-              );
-            })}
+            {suggestionsWithStatus.map((suggestion) => (
+              <SuggestionItem
+                key={suggestion.id}
+                suggestion={suggestion as unknown as Account}
+                rightPanel={rightPanel}
+                followStatus={suggestion.followStatus}
+                requestStatus={suggestion.requestStatus}
+              />
+            ))}
           </div>
         )}
       </CardContent>

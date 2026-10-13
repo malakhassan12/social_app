@@ -1,6 +1,6 @@
 "use client";
 
-import { rejectFollow } from "@/actions/Follow/rejectFollow";
+import { rejectFollowRequest } from "@/actions/FollowRequest/rejectFollowRequest";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { useTransition } from "react";
@@ -21,7 +21,7 @@ const RejectFollowBtn = ({
   const handleReject = ()=>{
     startTransition(async()=>{
 
-      const res = await rejectFollow(followerId);
+      const res = await rejectFollowRequest(followerId);
 
 
       if(res.success){
@@ -34,7 +34,7 @@ const RejectFollowBtn = ({
 
       }else{
 
-        toast.error(res.error?.message || "Error");
+        toast.error(res.errors?.message || "Error");
       }
 
     })

@@ -80,9 +80,8 @@ export function useFilesUpload(post?: Post) {
       setPreviews((prev) => [...prev, ...newPreviews]);
 
     } catch (error) {
-      console.error(error);
+      // console.error(error);
       alert(error instanceof Error ? error.message : "خطأ في الملفات");
-      // لو حصل خطأ رستر الـ input الحالي
       input.value = "";
     }
   };

@@ -1,23 +1,31 @@
-import { Post } from "@/types/post.Types";
-import PostCard from "./Post";
+import getPosts from "@/helper/post/getPosts";
 
-async function PostsSection() {
+import PostsVirtuoso from "./PostsVirtuoso";
+import type { FeedActivity } from "./PostsVirtuoso";
+import getAccount from "@/helper/account/getAccount";
+import { Account } from "@/types/account.Types";
 
-
-  const res = await fetch(`${process.env.API_V1}/api/post`);
-
-  if (!res.ok) {
-    throw new Error(`Request failed: ${res.status}`);
-  }
-
-  const data = await res.json();
-  const posts = data?.posts;
+async function PostsSection({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page } = await searchParams;
+  const [postResult, account] = await Promise.all([
+    getPosts(page ?? "1"),
+    getAccount(),
+  ]);
+  const { posts, currentPage, hasNextPage } = postResult;
 
   return (
-    <div className="space-y-4  ">
-      {posts?.map((post: Post) => (
-        <PostCard key={post?.id} post={post} />
-      ))}
+    <div className="h-screen">
+      <PostsVirtuoso
+        posts={posts as unknown as FeedActivity[]}
+        currentPage={currentPage}
+        hasNextPage={hasNextPage}
+        account={account as unknown as Account}
+        realtime
+      />
     </div>
   );
 }

@@ -1,14 +1,17 @@
 "use server";
-import { getUserId } from "@/helper/getUserId";
+import { getAccountId } from "@/helper/account/getAccountId";
 import prisma from "@/lib/prisma";
+import { NOTIREQUEST } from "@/types/notification.Types";
 import { Post } from "@/types/post.Types";
 import { ShareResponse } from "@/types/share.Types";
-import { revalidatePath } from "next/cache";
+import { createNotification } from "../notification/createNotification";
+import { NotificationType } from "@/generated/prisma/enums";
+import { getIo } from "@/lib/socket/getIo";
 
 const createSharePost = async (post: Post) => {
-  const userId = (await getUserId()) as string;
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -22,9 +25,11 @@ const createSharePost = async (post: Post) => {
   const share = await prisma.share.findFirst({
     where: {
       postId: post?.id,
-      shareToId: userId,
+      shareToId: accountId,
     },
   });
+
+  let shareId: string;
 
   if (share) {
     await prisma.share.delete({
@@ -32,25 +37,46 @@ const createSharePost = async (post: Post) => {
         id: share.id,
       },
     });
+    shareId = share.id;
 
     res = {
       success: true,
       shared: false,
     };
   } else {
-    await prisma.share.create({
+    const createdShare = await prisma.share.create({
       data: {
         postId: post?.id,
         shareFromId: post?.author?.id,
-        shareToId: userId,
+        shareToId: accountId,
       },
     });
+    shareId = createdShare.id;
     res = {
       success: true,
       shared: true,
     };
+
+    if (accountId !== createdShare.shareFromId) {
+      const notification: NOTIREQUEST = {
+        title: "New Share",
+        content: "shared your post",
+        creatorId: accountId,
+        receiverId: createdShare.shareFromId,
+        notificationType: NotificationType.SHARE,
+      };
+
+      await createNotification(notification);
+    }
   }
-  revalidatePath(`/api/post/${post?.id}`);
+  const io = getIo();
+
+  io.to(`account:${accountId}`).emit("publish:post", {
+    action: "shared",
+    postId: post.id,
+    shareId,
+    shared: res.shared,
+  });
 
   return res;
 };

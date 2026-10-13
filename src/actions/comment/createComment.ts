@@ -1,17 +1,19 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { getUserId } from "@/helper/getUserId";
 import { validateCreateComment } from "@/utils/commentValidation";
-import { revalidatePath } from "next/cache";
 import { createNotification } from "../notification/createNotification";
 import { NOTIREQUEST } from "@/types/notification.Types";
 import { NotificationType } from "@/generated/prisma/enums";
+import { getAccountId } from "@/helper/account/getAccountId";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
+import { Comment } from "@/types/comment.Types";
 
 export async function createComment(postId: string, formData: FormData) {
-  const userId = await getUserId();
+  const accountId = await getAccountId();
 
-  if (!userId) {
+  if (!accountId) {
     return {
       success: false,
       errors: {
@@ -33,11 +35,20 @@ export async function createComment(postId: string, formData: FormData) {
     };
   }
 
-  await prisma.comment.create({
+  const comment = await prisma.comment.create({
     data: {
       content,
       postId,
-      authorId: userId,
+      accountId,
+    },
+    include: {
+      author: {
+        select: {
+          id: true,
+          username: true,
+          image: true,
+        },
+      },
     },
   });
 
@@ -46,23 +57,28 @@ export async function createComment(postId: string, formData: FormData) {
       id: postId,
     },
     select: {
-      authorId: true,
+      accountId: true,
     },
   });
 
-  if (post?.authorId) {
-    const notification: NOTIREQUEST = {
-      title: "New Comment",
-      content: `made a comment on your post`,
-      creatorId: userId,
-      userId: post.authorId,
-      notificationType: NotificationType.COMMENT,
-    };
+  if (post?.accountId) {
+    if (accountId !== post.accountId) {
+      const notification: NOTIREQUEST = {
+        title: "New Comment",
+        content: `made a comment on your post`,
+        creatorId: accountId,
+        receiverId: post.accountId,
+        notificationType: NotificationType.COMMENT,
+      };
 
-    await createNotification(notification);
+      await createNotification(notification);
+    }
+    await publishToFollowers(post.accountId, TypePublishSocket.COMMENT, {
+      comment: comment as unknown as Comment,
+    });
   }
 
-  revalidatePath(`/api/comment/${postId}`);
+  // revalidatePath(`/api/comment/${postId}`);
   return {
     success: true,
   };

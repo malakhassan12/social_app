@@ -20,6 +20,13 @@ import RightSectionSignup from "./RightSectionSignup";
 import SocialBtns from "@/components/Buttons/SocialBtns";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const initialState: FormState = {
   errors: {},
@@ -47,7 +54,7 @@ export default function SignupForm({
     }
 
     if (state.success) {
-      toast.success("Sign in successfully", { position: "top-center" });
+      toast.success("Sign up successfully", { position: "top-center" });
       router.replace("/login");
     }
   }, [state, router]);
@@ -81,6 +88,20 @@ export default function SignupForm({
                 />
               </Field>
 
+              {/* ===== Username (NEW) ===== */}
+              <Field className="animate-element animate-delay-350">
+                <FieldLabel htmlFor="username">
+                  Username <span className="text-red-500">*</span>
+                </FieldLabel>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="johndoe"
+                  required
+                />
+              </Field>
+
               {/* ===== Email ===== */}
               <Field className="animate-element animate-delay-400">
                 <FieldLabel htmlFor="email">
@@ -93,7 +114,6 @@ export default function SignupForm({
                   placeholder="m@example.com"
                   required
                 />
-
                 <FieldDescription>
                   We&lsquo;ll use this for account verification and updates.
                 </FieldDescription>
@@ -126,6 +146,26 @@ export default function SignupForm({
                 />
               </Field>
 
+              {/* ===== Account Type (NEW) ===== */}
+
+              <Field className="animate-element animate-delay-650">
+                <FieldLabel htmlFor="accountType">
+                  Account Type <span className="text-red-500">*</span>
+                </FieldLabel>
+                <Select name="AccountType" required>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select account type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PRIVATE">Private</SelectItem>
+                    <SelectItem value="PUBLIC">Public</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FieldDescription>
+                  Choose whether your profile is visible to everyone or only
+                  approved followers.
+                </FieldDescription>
+              </Field>
               {/* ===== Password & Confirm ===== */}
               <Field className="animate-element animate-delay-700">
                 <div className="grid grid-cols-2 gap-4">

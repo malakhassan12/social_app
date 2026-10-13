@@ -3,8 +3,8 @@ export type ShareResponse = {
   shared: boolean;
   errors?: { message: string };
 };
+import { Account } from "./account.Types";
 import { Post } from "./post.Types";
-import { User } from "./profile.Types";
 
 export type Share = {
   id: string;
@@ -16,8 +16,8 @@ export type Share = {
 
   post?: Post;
 
-  shareFrom?: User;
-  shareTo?: User;
+  shareFrom?: Account;
+  shareTo?: Account;
 
   createdAt: Date;
 };

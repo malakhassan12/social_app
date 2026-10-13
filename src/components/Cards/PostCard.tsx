@@ -1,9 +1,13 @@
 import { Post } from "@/types/post.Types";
 import Link from "next/link";
-import  { FC } from "react";
+import { FC } from "react";
 import ProfileAvatar from "../Avatar/ProfileAvatar";
 import { FileText, Heart, Clock } from "lucide-react";
 import { getTime } from "@/utils/getTime";
+import Image from "next/image";
+
+
+// Delete
 
 const PostCard: FC<{
   post: Post;
@@ -11,6 +15,36 @@ const PostCard: FC<{
 }> = ({ post, showStats = true }) => {
   const likeCount = post.likes?.length || 0;
 
+  console.log(post)
+
+  /*
+  
+  {
+  id: 'cmtrdpeoh0000as55a3bgi7ac',
+  desc: 'Hi my name is moka',
+  image: [],
+  video: [],
+  isPrivate: false,
+  accountId: 'cmtfw2bce0002bk55a7eudli3',
+  createdAt: 2026-09-07T15:11:45.042Z,
+  updatedAt: 2026-09-07T15:11:45.042Z,
+  author: {
+    id: 'cmtfw2bce0002bk55a7eudli3',
+    emailId: 'cmtfw2baf0001bk55m19ykl95',
+    username: 'Malak',
+    name: 'Malak Hassan Hashem',
+    bio: null,
+    image: 'https://res.cloudinary.com/dkfbhkxfb/image/upload/v1788110218/uf5b96duq9vlwhcxmftd.jpg',
+    website: null,
+    country: 'Egypt',
+    type: 'PUBLIC',
+    createdAt: 2026-08-30T14:12:26.222Z,
+    updatedAt: 2026-08-30T17:17:00.268Z
+  },
+  likes: []
+}
+  
+  */
   return (
     <Link href={`/post/${post.id}`}>
       <div className="mb-2 rounded-xl border border-gray-200 dark:border-gray-800 p-4 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-all duration-200 group cursor-pointer hover:shadow-md">
@@ -50,11 +84,16 @@ const PostCard: FC<{
                 key={index}
                 className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800"
               >
-                <img
-                  src={img}
-                  alt="Post image"
-                  className="w-full h-full object-cover"
-                />
+                <div className="relative w-full h-full">
+                  {" "}
+                  <Image
+                    src={img}
+                    alt="Post image"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 60vw"
+                    className="object-cover"
+                  />
+                </div>
               </div>
             ))}
             {post.image.length > 3 && (
