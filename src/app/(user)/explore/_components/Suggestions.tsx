@@ -38,17 +38,19 @@ const Suggestions = async ({
   const isEmpty = suggestionsWithStatus.length === 0;
 
   return (
-    <Card className="border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-purple-500" />
-            Suggested for You
-            {!isEmpty && (
-              <span className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full">
-                {suggestionsWithStatus.length}
-              </span>
-            )}
+    <Card
+      className={`overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-xl shadow-black/[0.06] dark:border-white/[0.06] dark:bg-[#0f0d18] dark:shadow-black/40 ${
+        rightPanel ? "" : "hover:shadow-2xl hover:shadow-black/[0.10] dark:hover:shadow-black/60"
+      } transition-shadow duration-300`}
+    >
+      <CardHeader className="border-b border-black/[0.06] px-4 pb-3 pt-4 sm:px-6 sm:pt-5 dark:border-white/[0.08]">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex min-w-0 items-center gap-2 text-base font-semibold text-[#1a1e2b] sm:text-lg dark:text-[#f4ede4]">
+            <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-rose-400/10 text-rose-600 dark:bg-rose-300/10 dark:text-rose-300">
+              <UserPlus className="h-4 w-4" />
+            </span>
+            <span className="truncate">Suggested for You</span>
+            
           </CardTitle>
 
           {!isEmpty && !rightPanel && (
@@ -56,23 +58,26 @@ const Suggestions = async ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-xs font-medium text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-full px-3 h-8 transition-all duration-200"
+                className="group h-8 shrink-0 rounded-full px-3 text-xs font-medium text-rose-600 transition-all duration-200 hover:bg-rose-400/10 hover:text-rose-700 dark:text-rose-300 dark:hover:bg-rose-300/10 dark:hover:text-rose-200"
               >
                 Show All
-                <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                <ChevronRight className="ml-1 h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </Button>
             </Link>
           )}
         </div>
       </CardHeader>
-      <CardContent>
+
+      <CardContent className={rightPanel ? "p-3 sm:p-4" : "p-4 sm:p-6"}>
         {isEmpty ? (
-          <div className="text-center py-12">
-            <UserPlus className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-400 dark:text-gray-500">
+          <div className="flex flex-col items-center justify-center py-10 text-center sm:py-12">
+            <span className="mb-3 grid size-14 place-items-center rounded-full bg-rose-400/10 ring-1 ring-inset ring-rose-400/20 dark:bg-rose-300/10 dark:ring-rose-300/20">
+              <UserPlus className="h-6 w-6 text-rose-500 dark:text-rose-300" />
+            </span>
+            <p className="text-sm font-semibold text-[#1a1e2b] dark:text-[#f4ede4]">
               No suggestions available
             </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            <p className="mt-1 max-w-xs text-xs text-[#1a1e2b]/55 dark:text-[#f4ede4]/55">
               Check back later for new people to follow
             </p>
           </div>
@@ -81,7 +86,7 @@ const Suggestions = async ({
             className={
               rightPanel
                 ? "flex flex-col gap-3"
-                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4"
+                : "grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 2xl:grid-cols-4"
             }
           >
             {suggestionsWithStatus.map((suggestion) => (

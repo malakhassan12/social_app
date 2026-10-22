@@ -1,5 +1,8 @@
+"use server";
+
 import prisma from "@/lib/prisma";
 import { getAccountId } from "../account/getAccountId";
+import isAFriendInPublicAccount from "../friend/isAFriendInPublicAccount";
 
 const getProfilePosts = async (
   accountId: string | undefined,
@@ -20,6 +23,9 @@ const getProfilePosts = async (
     };
   }
 
+  const canViewPrivatePosts =
+    await isAFriendInPublicAccount(finalAccountId);
+
   const page = Math.max(1, Number(pageInput) || 1);
   const limit = 8;
 
@@ -27,13 +33,14 @@ const getProfilePosts = async (
   const posts = await prisma.post.findMany({
     where: {
       accountId: finalAccountId,
+      ...(canViewPrivatePosts ? {} : { isPrivate: false }),
     },
     include: {
       author: true,
       likes: true,
       _count: {
         select: {
-          comments: true,
+          comments: { where: { isRemoved: false } },
           likes: true,
           shares: true,
         },
@@ -69,7 +76,7 @@ const getProfilePosts = async (
           likes: true,
           _count: {
             select: {
-              comments: true,
+              comments: { where: { isRemoved: false } },
               likes: true,
               shares: true,
             },

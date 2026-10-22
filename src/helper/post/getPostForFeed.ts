@@ -57,7 +57,11 @@ const getPostForFeed = async (postId: string) => {
         select: { id: true },
       },
       _count: {
-        select: { comments: true, likes: true, shares: true },
+        select: {
+          comments: { where: { isRemoved: false } },
+          likes: true,
+          shares: true,
+        },
       },
     },
   });

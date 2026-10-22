@@ -5,48 +5,95 @@ import { Button } from "@/components/ui/button";
 import { LikeResponse } from "@/types/like.Types";
 import { Post } from "@/types/post.Types";
 import { Heart } from "lucide-react";
-import { useOptimistic,  useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
+import { getSocket } from "@/lib/socket/socket";
 
 const LikePostBtn = ({
   post,
+  accountId,
   likedCount = 0,
   isLike,
 }: {
   post: Post;
+  accountId: string;
   likedCount: number;
   isLike: boolean;
 }) => {
   const [pending, startTransition] = useTransition();
+  const [like, setLike] = useState(isLike);
+  const [likesCount, setLikesCount] = useState(likedCount);
 
-  const [like, setLike] = useOptimistic(isLike);
-  const [likesCount, setLikesCount] = useOptimistic(likedCount);
+  useEffect(() => {
+    const socket = getSocket();
 
-  const handleLike = () => {
-    if (like) {
-      setLikesCount((prev) => {
-        return likedCount > 0 ? prev - 1 : 0;
-      });
-      setLike(false);
-    } else {
-      setLikesCount((prev) => {
-        return prev + 1;
-      });
-      setLike(true);
-    }
-    startTransition(async () => {
-      const res = (await createLikeOnPost(post.id)) as LikeResponse;
-
-      if (!res.success) {
-        toast.error(res?.errors?.message || "Something went wrong", {
-          position: "top-center",
-        });
+    const handlePostEvent = (payload: unknown) => {
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        !("action" in payload) ||
+        payload.action !== "liked" ||
+        !("postId" in payload) ||
+        payload.postId !== post.id ||
+        !("accountId" in payload) ||
+        typeof payload.accountId !== "string" ||
+        !("liked" in payload) ||
+        typeof payload.liked !== "boolean" ||
+        !("likesCount" in payload) ||
+        typeof payload.likesCount !== "number"
+      ) {
         return;
       }
 
-      toast.success(res.liked ? "Post liked ❤️" : "Like removed", {
-        position: "top-center",
-      });
+      setLikesCount(payload.likesCount);
+      if (payload.accountId === accountId) {
+        setLike(payload.liked);
+      }
+    };
+
+    socket.on("publish:post", handlePostEvent);
+    socket.connect();
+
+    return () => {
+      socket.off("publish:post", handlePostEvent);
+    };
+  }, [accountId, post.id]);
+
+  const handleLike = () => {
+    const previousLike = like;
+    const previousLikesCount = likesCount;
+    const nextLike = !like;
+
+    setLike(nextLike);
+    setLikesCount((count) => Math.max(0, count + (nextLike ? 1 : -1)));
+
+    startTransition(async () => {
+      try {
+        const res = (await createLikeOnPost(post.id)) as LikeResponse;
+
+        if (!res.success) {
+          setLike(previousLike);
+          setLikesCount(previousLikesCount);
+          toast.error(res.errors?.message || "Something went wrong", {
+            position: "top-center",
+          });
+          return;
+        }
+
+        setLike(res.liked);
+        if (typeof res.likesCount === "number") {
+          setLikesCount(res.likesCount);
+        }
+
+        toast.success(res.liked ? "Post liked ❤️" : "Like removed", {
+          position: "top-center",
+        });
+      } catch (error) {
+        setLike(previousLike);
+        setLikesCount(previousLikesCount);
+        console.error("Failed to update post like:", error);
+        toast.error("Something went wrong", { position: "top-center" });
+      }
     });
   };
 

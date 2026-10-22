@@ -73,8 +73,17 @@ export async function createComment(postId: string, formData: FormData) {
 
       await createNotification(notification);
     }
+    
+    const commentsCount = await prisma.comment.count({
+      where: {
+        postId,
+        isRemoved: false,
+      },
+    });
+
     await publishToFollowers(post.accountId, TypePublishSocket.COMMENT, {
       comment: comment as unknown as Comment,
+      commentsCount,
     });
   }
 

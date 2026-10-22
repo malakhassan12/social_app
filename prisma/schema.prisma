@@ -220,6 +220,9 @@ model Post {
   isPrivate Boolean @default(false)
 
 
+  isRemoved Boolean @default(false)
+
+
   isOpenComments Boolean @default(true)
 
   accountId String

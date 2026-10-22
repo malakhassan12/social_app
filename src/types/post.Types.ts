@@ -7,6 +7,7 @@ interface Post {
   image?: string[];
   video?: string[];
   isPrivate: boolean;
+  isRemoved: boolean;
   accountId: string;
   createdAt: string;
   updatedAt: string;

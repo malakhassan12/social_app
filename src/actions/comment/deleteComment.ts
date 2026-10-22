@@ -24,6 +24,13 @@ const deleteComment = async (comment: Comment) => {
       where: {
         id: comment.id,
       },
+      include: {
+        post: {
+          select: {
+            accountId: true,
+          },
+        },
+      },
     });
 
     if (!commentExist) {
@@ -44,22 +51,32 @@ const deleteComment = async (comment: Comment) => {
       };
     }
 
-    if (comment?.id) {
-      await prisma.comment.update({
-        where: {
-          id: comment.id,
-        },
-        data: {
-          isRemoved: true,
-          removedAt: new Date(),
-        },
-      });
-    }
-    revalidatePath(`/api/comment/${comment?.postId}`);
-
-    await publishToFollowers(accountId, TypePublishSocket.COMMENT, {
-      comment: commentExist as unknown as Comment,
+    const removedComment = await prisma.comment.update({
+      where: {
+        id: comment.id,
+      },
+      data: {
+        isRemoved: true,
+        removedAt: new Date(),
+      },
     });
+    const commentsCount = await prisma.comment.count({
+      where: {
+        postId: commentExist.postId,
+        isRemoved: false,
+      },
+    });
+
+    revalidatePath(`/api/comment/${commentExist.postId}`);
+
+    await publishToFollowers(
+      commentExist.post.accountId,
+      TypePublishSocket.COMMENT,
+      {
+        comment: removedComment as unknown as Comment,
+        commentsCount,
+      },
+    );
 
     return {
       success: true,

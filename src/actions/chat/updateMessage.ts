@@ -8,6 +8,7 @@ import {
   UpdateMessageActionState,
   updateMessageSchema,
 } from "@/lib/schema/chat/Update-Message";
+import { getIo } from "@/lib/socket/getIo";
 
 const updateMessage = async ({
   messageId,
@@ -115,6 +116,15 @@ const updateMessage = async ({
       conversationId: true,
     },
   });
+
+  const io = getIo();
+
+  io.to(`conversation:${updatedMessage.conversationId}`).emit(
+    "publish:update-message",
+    {
+     message : updatedMessage
+    },
+  );
 
   revalidatePath(`/messages/${updatedMessage.conversationId}`);
 

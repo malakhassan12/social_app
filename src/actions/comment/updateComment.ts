@@ -41,6 +41,13 @@ const updateComment = async (comment: Comment, formData: FormData) => {
       where: {
         id: comment.id,
       },
+      include: {
+        post: {
+          select: {
+            accountId: true,
+          },
+        },
+      },
     });
 
     if (!commentExist) {
@@ -79,11 +86,23 @@ const updateComment = async (comment: Comment, formData: FormData) => {
         },
       },
     });
-    revalidatePath(`/api/comment/${comment?.postId}`);
-
-    await publishToFollowers(accountId, TypePublishSocket.COMMENT, {
-      comment: commentUpdated as unknown as Comment,
+    const commentsCount = await prisma.comment.count({
+      where: {
+        postId: commentExist.postId,
+        isRemoved: false,
+      },
     });
+
+    revalidatePath(`/api/comment/${commentExist.postId}`);
+
+    await publishToFollowers(
+      commentExist.post.accountId,
+      TypePublishSocket.COMMENT,
+      {
+        comment: commentUpdated as unknown as Comment,
+        commentsCount,
+      },
+    );
 
     return {
       success: true,

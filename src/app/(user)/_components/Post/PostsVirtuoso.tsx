@@ -15,6 +15,7 @@ import ShareCard from "../../profile/_components/ShareCard";
 import { Share } from "@/types/share.Types";
 import { getSocket } from "@/lib/socket/socket";
 import getPostForFeed from "@/helper/post/getPostForFeed";
+import getProfilePosts from "@/helper/profile/getProfilePosts";
 
 export type FeedActivity =
   | { type: "POST"; id: string; createdAt: Date | string; post: Post }
@@ -82,12 +83,16 @@ const PostsVirtuoso = ({
   hasNextPage: initialHasNextPage,
   account,
   realtime = false,
+  profileMode = false,
+  profileId,
 }: {
   posts: FeedItem[];
   currentPage: number;
   hasNextPage: boolean;
   account: Account;
   realtime?: boolean;
+  profileMode?: boolean;
+  profileId?: string;
 }) => {
   const [loadedPosts, setLoadedPosts] = useState<FeedItem[]>(posts);
 
@@ -98,35 +103,128 @@ const PostsVirtuoso = ({
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!realtime) return;
-
     const socket = getSocket();
 
     const handlePostCreated = (payload: unknown) => {
       if (
         typeof payload !== "object" ||
         payload === null ||
+        !("action" in payload) ||
+        typeof payload.action !== "string"
+      ) {
+        return;
+      }
+
+      if (payload.action === "disable-comments:posts") {
+        if (
+          !("accountId" in payload) ||
+          typeof payload.accountId !== "string" ||
+          !("isOpenComments" in payload) ||
+          typeof payload.isOpenComments !== "boolean"
+        ) {
+          return;
+        }
+
+        const ownerAccountId = payload.accountId;
+        const isOpenComments = payload.isOpenComments;
+        setLoadedPosts((currentPosts) =>
+          currentPosts.map((activity) => {
+            if ("post" in activity && activity.type === "POST") {
+              return activity.post.accountId === ownerAccountId
+                ? {
+                    ...activity,
+                    post: {
+                      ...activity.post,
+                      isOpenComments,
+                    },
+                  }
+                : activity;
+            }
+            if ("share" in activity && activity.type === "SHARE") {
+              return activity.share.post?.accountId === ownerAccountId
+                ? {
+                    ...activity,
+                    share: {
+                      ...activity.share,
+                      post: {
+                        ...activity.share.post,
+                        isOpenComments,
+                      },
+                    },
+                  }
+                : activity;
+            }
+            return activity.accountId === ownerAccountId
+              ? { ...activity, isOpenComments }
+              : activity;
+          }),
+        );
+        return;
+      }
+
+      if (payload.action === "disable-comments:post") {
+        if (
+          !("postId" in payload) ||
+          typeof payload.postId !== "string" ||
+          !("isOpenComments" in payload) ||
+          typeof payload.isOpenComments !== "boolean"
+        ) {
+          return;
+        }
+
+        const { postId, isOpenComments } = payload;
+        setLoadedPosts((currentPosts) =>
+          currentPosts.map((activity) => {
+            if ("post" in activity && activity.type === "POST") {
+              return activity.post.id === postId
+                ? {
+                    ...activity,
+                    post: { ...activity.post, isOpenComments },
+                  }
+                : activity;
+            }
+            if ("share" in activity && activity.type === "SHARE") {
+              return activity.share.post?.id === postId
+                ? {
+                    ...activity,
+                    share: {
+                      ...activity.share,
+                      post: {
+                        ...activity.share.post,
+                        isOpenComments,
+                      },
+                    },
+                  }
+                : activity;
+            }
+            return activity.id === postId
+              ? { ...activity, isOpenComments }
+              : activity;
+          }),
+        );
+        return;
+      }
+
+      if (
+        !realtime ||
         !("postId" in payload) ||
         typeof payload.postId !== "string" ||
-        !("action" in payload) ||
         (payload.action !== "created" &&
           payload.action !== "updated" &&
           payload.action !== "deleted" &&
           payload.action !== "liked" &&
-          payload.action !== "shared"
-        )
+          payload.action !== "shared")
       ) {
         return;
       }
 
       const postId = payload.postId;
 
-      if (payload.action === "created" ) {
+      if (payload.action === "created") {
         void getPosts(1)
           .then((result) => {
             const newPost = result.posts.find(
-              (activity) =>
-                activity.type === "POST" && activity.id === postId,
+              (activity) => activity.type === "POST" && activity.id === postId,
             ) as FeedActivity | undefined;
 
             if (!newPost || newPost.type !== "POST") return;
@@ -163,14 +261,51 @@ const PostsVirtuoso = ({
           !("shareId" in payload) ||
           typeof payload.shareId !== "string" ||
           !("shared" in payload) ||
-          typeof payload.shared !== "boolean"
+          typeof payload.shared !== "boolean" ||
+          !("sharedCount" in payload) ||
+          typeof payload.sharedCount !== "number" ||
+          !("accountId" in payload) ||
+          typeof payload.accountId !== "string"
         ) {
           return;
         }
 
         const shareId = payload.shareId;
+        const shared = payload.shared;
+        const sharedCount = payload.sharedCount;
+        const actorAccountId = payload.accountId;
 
-        if (!payload.shared) {
+        setLoadedPosts((currentPosts) =>
+          currentPosts.map((activity) => {
+            const post =
+              "post" in activity && activity.type === "POST"
+                ? activity.post
+                : "share" in activity && activity.type === "SHARE"
+                  ? activity.share.post
+                  : (activity as Post);
+
+            if (!post || post.id !== postId) return activity;
+
+            const updatedPost = {
+              ...post,
+              sharedCount,
+              isShared: actorAccountId === account.id ? shared : post.isShared,
+            };
+
+            if ("post" in activity && activity.type === "POST") {
+              return { ...activity, post: updatedPost };
+            }
+            if ("share" in activity && activity.type === "SHARE") {
+              return {
+                ...activity,
+                share: { ...activity.share, post: updatedPost },
+              };
+            }
+            return updatedPost;
+          }),
+        );
+
+        if (!shared) {
           setLoadedPosts((currentPosts) =>
             currentPosts.filter(
               (activity) =>
@@ -235,9 +370,7 @@ const PostsVirtuoso = ({
                       }
                     : activity;
                 }
-                return activity.id === postId
-                  ? updatedActivity.post
-                  : activity;
+                return activity.id === postId ? updatedActivity.post : activity;
               });
             });
           })
@@ -277,8 +410,7 @@ const PostsVirtuoso = ({
 
           const updatedPost = {
             ...post,
-            isLiked:
-              actorAccountId === account.id ? liked : post.isLiked,
+            isLiked: actorAccountId === account.id ? liked : post.isLiked,
             _count: {
               ...post._count,
               likes: likesCount,
@@ -323,13 +455,17 @@ const PostsVirtuoso = ({
     try {
       const nextPage = page + 1;
 
-      const result = await getPosts(nextPage);
+      const result = profileMode
+        ? await getProfilePosts(profileId, nextPage)
+        : await getPosts(nextPage);
 
       setLoadedPosts((currentPosts) => {
-        const existingIds = new Set(currentPosts.map((activity) => activity.id));
-        const newActivities = (result.posts as unknown as FeedActivity[]).filter(
-          (activity) => !existingIds.has(activity.id),
+        const existingIds = new Set(
+          currentPosts.map((activity) => activity.id),
         );
+        const newActivities = (
+          result.posts as unknown as FeedActivity[]
+        ).filter((activity) => !existingIds.has(activity.id));
 
         return [...currentPosts, ...newActivities];
       });
@@ -342,7 +478,7 @@ const PostsVirtuoso = ({
     } finally {
       setLoading(false);
     }
-  }, [loading, hasNextPage, page]);
+  }, [loading, hasNextPage, page, profileMode, profileId]);
 
   // ------------------------------------------------
   // Empty state
@@ -365,7 +501,7 @@ const PostsVirtuoso = ({
   // ------------------------------------------------
 
   return (
-    <div className="h-full">
+    <div className="h-full w-full">
       <Virtuoso
         className="hide-scrollbar"
         style={{ height: "100%" }}
@@ -374,30 +510,30 @@ const PostsVirtuoso = ({
         endReached={loadMore}
         increaseViewportBy={0}
         itemContent={(_, item) => {
-          if (item && "post" in item && item.type === "POST") {
-            return (
-              <PostView
-                key={item.id}
-                post={item.post}
-                account={account}
-              />
-            );
-          } else if (item && "share" in item && item.type === "SHARE") {
-            return (
-              <ShareCard
-                key={item.id}
-                share={item.share}
-                account={account}
-              />
-            );
-          }
+          if (!item) return null;
 
-          return item ? (
-            <PostView key={item.id} post={item as Post} account={account} />
-          ) : null;
+          const content = (() => {
+            if ("post" in item && item.type === "POST") {
+              return <PostView post={item.post} account={account} />;
+            }
+            if ("share" in item && item.type === "SHARE") {
+              return <ShareCard share={item.share} account={account} />;
+            }
+            return <PostView post={item as Post} account={account} />;
+          })();
+
+          return (
+            <div key={item.id} className=" py-2  sm:py-3 ">
+              {content}
+            </div>
+          );
         }}
         components={{
-          Footer: () => <Footer loading={loading} hasNextPage={hasNextPage} />,
+          Footer: () => (
+            <div className="px-3 pb-6 sm:px-4 lg:px-6">
+              <Footer loading={loading} hasNextPage={hasNextPage} />
+            </div>
+          ),
         }}
       />
     </div>

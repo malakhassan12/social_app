@@ -9,9 +9,7 @@ import createConversation from "./createConversation";
 
 import createMessage from "./createMessage";
 
-import {
-  CreateMessageActionState,
-} from "@/lib/schema/chat/Create-Message.schema";
+import { CreateMessageActionState } from "@/lib/schema/chat/Create-Message.schema";
 
 import publishMessages from "../socket/publish-messages";
 
@@ -26,10 +24,7 @@ const sendMessage = async ({
 
   accountId: string;
 
-  conversationId:
-    | string
-    | null
-    | undefined;
+  conversationId: string | null | undefined;
 
   formData: FormData;
 
@@ -61,23 +56,17 @@ const sendMessage = async ({
     //    strings to real null
     // =====================================
 
-    let actualConversationId:
-      | string
-      | null = null;
+    let actualConversationId: string | null = null;
 
     if (
       conversationId &&
       conversationId !== "null" &&
       conversationId !== "undefined"
     ) {
-      actualConversationId =
-        conversationId;
+      actualConversationId = conversationId;
     }
 
-    console.log(
-      "actualConversationId",
-      actualConversationId,
-    );
+    console.log("actualConversationId", actualConversationId);
 
     // =====================================
     // 3. Create conversation if needed
@@ -87,43 +76,32 @@ const sendMessage = async ({
       if (!selectedAccountId) {
         return {
           success: false,
-          message:
-            "Recipient is required",
+          message: "Recipient is required",
         };
       }
 
-      console.log(
-        "🟢 createConversation START",
-      );
+      console.log("🟢 createConversation START");
 
-      actualConversationId =
-        await createConversation({
-          selectedAccountId,
-          accountId,
-        });
+      actualConversationId = await createConversation({
+        selectedAccountId,
+        accountId,
+      });
 
-      console.log(
-        "🟢 createConversation RESULT",
-        actualConversationId,
-      );
+      console.log("🟢 createConversation RESULT", actualConversationId);
     }
 
     // =====================================
     // 4. Verify sender is participant
     // =====================================
 
-    const participant =
-      await prisma.conversationParticipant.findUnique(
-        {
-          where: {
-            conversationId_accountId: {
-              conversationId:
-                actualConversationId,
-              accountId,
-            },
-          },
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: {
+        conversationId_accountId: {
+          conversationId: actualConversationId,
+          accountId,
         },
-      );
+      },
+    });
 
     if (
       !participant ||
@@ -131,8 +109,7 @@ const sendMessage = async ({
     ) {
       return {
         success: false,
-        message:
-          "Not a participant",
+        message: "Not a participant",
       };
     }
 
@@ -140,23 +117,16 @@ const sendMessage = async ({
     // 5. Get conversation
     // =====================================
 
-    const conversation =
-      await prisma.conversation.findUnique(
-        {
-          where: {
-            id: actualConversationId,
-          },
-        },
-      );
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        id: actualConversationId,
+      },
+    });
 
-    if (
-      !conversation?.isOpen &&
-      !participant.isAdmin
-    ) {
+    if (!conversation?.isOpen && !participant.isAdmin) {
       return {
         success: false,
-        message:
-          "Can't send message since the chat is closed",
+        message: "Can't send message since the chat is closed",
       };
     }
 
@@ -164,14 +134,12 @@ const sendMessage = async ({
     // 6. Create message
     // =====================================
 
-    const res =
-      await createMessage({
-        conversationId:
-          actualConversationId,
-        accountId,
-        formData,
-        replyToMessageId,
-      });
+    const res = await createMessage({
+      conversationId: actualConversationId,
+      accountId,
+      formData,
+      replyToMessageId,
+    });
 
     if (!res.success) {
       return {
@@ -181,14 +149,14 @@ const sendMessage = async ({
       };
     }
 
-    const message =
-      res.data?.message;
+    const message = res.data?.message;
+
+   
 
     if (!message) {
       return {
         success: false,
-        message:
-          "Failed to send message",
+        message: "Failed to send message",
       };
     }
 
@@ -210,34 +178,27 @@ const sendMessage = async ({
     // 8. Realtime
     // =====================================
 
-    await publishMessages(
-      actualConversationId,
-      message,
-    );
+    await publishMessages(actualConversationId, message);
 
     // =====================================
     // 9. Revalidate
     // =====================================
 
-    revalidatePath(
-      `/messages/${actualConversationId}`,
-    );
+    revalidatePath(`/messages/${actualConversationId}`);
 
-    revalidatePath(`profile/send-message/${conversationId}?accountId=${selectedAccountId}`)
+    revalidatePath(
+      `profile/send-message/${conversationId}?accountId=${selectedAccountId}`,
+    );
 
     return {
       success: true,
     };
   } catch (error) {
-    console.error(
-      "[sendMessage]",
-      error,
-    );
+    console.error("[sendMessage]", error);
 
     return {
       success: false,
-      message:
-        "Failed to send message",
+      message: "Failed to send message",
     };
   }
 };

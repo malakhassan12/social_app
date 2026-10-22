@@ -5,6 +5,11 @@ import NotificationsSkeleton from "@/components/Skelton/NotificationSkelton";
 
 export const metadata: Metadata = {
   title: "Notifications page",
+  description: "Your personalized Circle feed.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const Page: FC<{

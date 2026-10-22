@@ -11,17 +11,48 @@ type Props = {
   }>;
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: Props): Promise<Metadata> {
   const routeParams = await params;
 
   const account = await getAccount(
-    routeParams.accountId ? routeParams.accountId[0] : undefined,
+    routeParams.accountId
+      ? routeParams.accountId[0]
+      : undefined,
   );
 
+  const accountName = account?.username ?? "Profile";
+
   return {
-    title: account?.name ?? "Profile",
+    title: accountName,
+    description: account
+      ? `Visit ${accountName}'s profile on Circle and discover their posts and activity.`
+      : "View profiles and connect with people on Circle.",
+
+    openGraph: {
+      title: `${accountName} | Circle`,
+      description: account
+        ? `Visit ${accountName}'s profile on Circle.`
+        : "Discover profiles on Circle.",
+      type: "profile",
+    },
+
+    twitter: {
+      card: "summary",
+      title: `${accountName} | Circle`,
+      description: account
+        ? `Visit ${accountName}'s profile on Circle.`
+        : "Discover profiles on Circle.",
+    },
+
+    robots: {
+      index: false,
+      follow: false,
+    },
   };
 }
+
 
 const Page: FC<{
   params: Promise<{

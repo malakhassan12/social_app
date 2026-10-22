@@ -53,7 +53,6 @@ const createMessage = async ({
     image: rawImage instanceof File ? rawImage : undefined,
   };
 
-
   // ============================================================
   // 3. Validate FormData
   // ============================================================
@@ -123,7 +122,6 @@ const createMessage = async ({
     };
   }
 
-
   // ============================================================
   // 6. Validate reply
   // ============================================================
@@ -172,14 +170,44 @@ const createMessage = async ({
 
       replyToMessageId: replyToMessageId ?? null,
     },
-    include :{
-      sender : {
-        select :{
-          username : true,
-          image : true
-        }
-      }
-    }
+
+    include: {
+      sender: {
+        select: {
+          username: true,
+          image: true,
+        },
+      },
+
+      replyToMessage: {
+        select: {
+          content: true,
+          image: true,
+          sender: true,
+        },
+      },
+
+      messageReads: {
+        select: {
+          accountId: true,
+          readAt: true,
+          account: {
+            select: {
+              username: true,
+              id: true,
+              image: true,
+            },
+          },
+        },
+      },
+
+      messageReactions: {
+        select: {
+          accountId: true,
+          type: true,
+        },
+      },
+    },
   });
 
   console.log("Malak finish");
@@ -188,9 +216,9 @@ const createMessage = async ({
 
   return {
     success: true,
-    data :{
-      message 
-    } 
+    data: {
+      message,
+    },
   };
 };
 

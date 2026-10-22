@@ -5,46 +5,69 @@ import { Button } from "@/components/ui/button";
 import { Post } from "@/types/post.Types";
 import { ShareResponse } from "@/types/share.Types";
 import { Share2 } from "lucide-react";
-import { startTransition, useOptimistic, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { getSocket } from "@/lib/socket/socket";
 
 type SharePostBtnProps = {
   post: Post;
+  accountId: string;
   isShared: boolean;
   sharedCount?: number;
 };
 
 const SharePostBtn = ({
   post,
+  accountId,
   isShared,
   sharedCount = 0,
 }: SharePostBtnProps) => {
   const [pending, setPending] = useState(false);
+  const [share, setShare] = useState(isShared);
+  const [sharesCount, setSharesCount] = useState(sharedCount);
 
-  const [share, setShare] = useOptimistic(isShared);
-  const [sharesCount, setSharesCount] = useOptimistic(
-    sharedCount,
-    (currentCount, action: "increment" | "decrement") => {
-      if (action === "increment") {
-        return currentCount + 1;
+  useEffect(() => {
+    const socket = getSocket();
+
+    const handlePostEvent = (payload: unknown) => {
+      if (
+        typeof payload !== "object" ||
+        payload === null ||
+        !("action" in payload) ||
+        payload.action !== "shared" ||
+        !("postId" in payload) ||
+        payload.postId !== post.id ||
+        !("shared" in payload) ||
+        typeof payload.shared !== "boolean" ||
+        !("sharedCount" in payload) ||
+        typeof payload.sharedCount !== "number"
+      ) {
+        return;
       }
 
-      return Math.max(0, currentCount - 1);
-    },
-  );
+      setSharesCount(payload.sharedCount);
+      if ("accountId" in payload && payload.accountId === accountId) {
+        setShare(payload.shared);
+      }
+    };
+
+    socket.on("publish:post", handlePostEvent);
+    socket.connect();
+
+    return () => {
+      socket.off("publish:post", handlePostEvent);
+    };
+  }, [accountId, post.id]);
+
   const handleShare = async () => {
+    const previousShare = share;
+    const previousCount = sharesCount;
+
     try {
-      if (share) {
-        startTransition(() => {
-          setSharesCount("decrement");
-          setShare(false);
-        });
-      } else {
-        startTransition(() => {
-          setSharesCount("increment");
-          setShare(true);
-        });
-      }
+      setShare(!share);
+      setSharesCount((currentCount) =>
+        Math.max(0, currentCount + (share ? -1 : 1)),
+      );
 
       setPending(true);
 
@@ -55,14 +78,23 @@ const SharePostBtn = ({
           position: "top-center",
         });
 
+        setShare(previousShare);
+        setSharesCount(previousCount);
         return;
+      }
+
+      setShare(res.shared);
+      if (typeof res.sharedCount === "number") {
+        setSharesCount(res.sharedCount);
       }
 
       toast.success(res.shared ? "Post shared successfully" : "Share removed", {
         position: "top-center",
       });
     } catch (error) {
-      console.log(error);
+      setShare(previousShare);
+      setSharesCount(previousCount);
+      console.error("Failed to share post:", error);
 
       toast.error("Failed to share post", {
         position: "top-center",

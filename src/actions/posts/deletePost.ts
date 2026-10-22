@@ -42,10 +42,13 @@ export const deletePost = async (postId: string) => {
       };
     }
 
-    await prisma.post.delete({
+    await prisma.post.update({
       where: {
         id: postId,
       },
+      data:{
+        isRemoved : true
+      }
     });
     await publishToFollowers(accountId, TypePublishSocket.POST, {
       postEvent: {

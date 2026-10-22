@@ -65,8 +65,6 @@ User
 
 
 
-Handle folders and files.
-Handle UI .
 Handle router refresh. (Done yet , since show Performance)
     - LoginForm
 
@@ -80,9 +78,75 @@ Handle router refresh. (Done yet , since show Performance)
    | SEO                                              |
    ---------------------------------------------------
 
+<CurtainLink
+  href="/logout"
+  transitionOptions={{
+    coverEffect: "iris",
+    revealEffect: "wipe",
+    color: "linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%)",
+  }}
+>
+  Log out
+</CurtainLink>
 
----> Posts's in private account appear in search
----> Account Status : SUSPENDED
+----------- "final" ------------
+Handle folders and files. ()
+Handle UI . (Done)
+
+
+
+Notice
+   <Diff between Add friend and follow , if noon follows malak and vica verse , When soso make post private , malak dont show it sice it follows it only not as friend>
+
+Testing
+
+1. Comments / shares number not makes in sync. (Done)
+2. Exist problem in reply and likes in chat. (Done)
+3. Posts's in private account appear in search. (Done)
+4. Account Status : SUSPENDED, What makes in this case in 3 status ?. <------------------
+
+   | الجزء | تعمل إيه في حالة DEACTIVATED؟ |
+   | :--- | :--- |
+   | **Settings UI** | المستخدم يقدر يعطّل حسابه بنفسه، ويقدر يرجّعه ACTIVE من شاشة Reactivate. |
+   | **Database** | غيّر `AccountStatus` إلى `DEACTIVATED` مع الاحتفاظ بالحساب وبياناته كاملة، لا تحذف. |
+   | **Logout** | اعمل Sign out فور نجاح التعطيل، وأبطل كل الـ Sessions الحالية حسب نظام الـ Auth. |
+   | **Login** | اسمح بالتحقق من Email و Password، لكن امنع الدخول الطبيعي للتطبيق قبل إعادة التفعيل. |
+   | **Reactivate Screen** | بعد تسجيل الدخول الناجح، وجّه المستخدم لشاشة فيها زر `Reactivate Account` فقط. |
+   | **Reactivation Action** | عند الضغط على Reactivate، تحقّق من هويته على السيرفر، وبعدها غيّر الحالة إلى `ACTIVE`. |
+   | **Profile** | اخفِ البروفايل عن المستخدمين الآخرين (يرجع 404 أو `Deactivated`). |
+   | **Feed & Search** | امنع ظهور الحساب في نتائج البحث والـ Feed، فلتر بـ `where: { status: 'ACTIVE' }`. |
+   | **Posts & Comments** | امنع إنشاء Posts/Comments/Likes، مع الاحتفاظ بالمحتوى القديم (مخفي). |
+   | **Messages** | امنع إرسال رسائل جديدة، وحدد هل الرسائل القديمة تظل ظاهرة للطرف الآخر أم لا. |
+   | **Server Actions & API** | تحقّق من حالة الحساب في السيرفر في كل Request؛ متعتمدش على إخفاء الأزرار في UI فقط. |
+   | **Security** | متسمحش بتغيير `DEACTIVATED` إلى `ACTIVE` عن طريق تعديل Request؛ لازم Server-side verification. |
+   | **Data Retention** | متحذفش الحساب أو الـ Posts تلقائيًا؛ خليه يقدر يرجع ببياناته في أي وقت. |
+
+
+5. Suggestions and messages routes not make color when make click on routes. (Done)
+6. Turnoff comments not done in sync. (Done)
+7. When make share to post and that post deleted , delete the shared also !. (Done)
+   "Should appear that content not avaliable now". 
+8. Ensure when post is private not make share (Not maked). (Done)
+9. Malak is follow soso but not friends ! , When malak open profile soso can show private posts!!.(Done)
+10. Allow comments on all posts not works. (Done)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ---> Chatting (Done)
@@ -97,7 +161,7 @@ Handle router refresh. (Done yet , since show Performance)
 
 
 
------------------- "Settings" ------------------
+------------------ "Settings" (Done) ------------------
 now
 
 Privacy (Done)

@@ -2,7 +2,19 @@
 import Link from "next/link";
 import { Home, ArrowLeft, Search, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Metadata } from "next";
 
+
+export const metadata: Metadata = {
+  title: {
+    absolute: "Page Not Found | Circle",
+  },
+  description: "The page you're looking for could not be found.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 const NotFound = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100 dark:from-[#1a1a2e] dark:to-[#16213e] p-4">

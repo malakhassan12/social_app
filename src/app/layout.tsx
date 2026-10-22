@@ -3,6 +3,9 @@ import { Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/context/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { siteUrl } from "@/lib/site-url";
+import { CurtainProvider } from "@/components/Curtain/CurtainProvider";
+import AOSInit from "@/components/AOS/AOSInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -78,8 +81,9 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
 
-  metadataBase: new URL("https://Circle.com"),
+  metadataBase: new URL(siteUrl),
 };
+
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -92,10 +96,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} h-full antialiased`}
     >
       <head>
-        <link
-          rel="preconnect"
-          href="https://res.cloudinary.com"
-        />
+        <link rel="preconnect" href="https://res.cloudinary.com" />
       </head>
       <body className="min-h-screen">
         <ThemeProvider
@@ -104,7 +105,8 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+           <AOSInit />
+          <CurtainProvider>{children}</CurtainProvider>
           <Toaster />
         </ThemeProvider>
       </body>

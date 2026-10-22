@@ -1,6 +1,16 @@
 import { Mail, MessageCircle, FileText, BookOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Metadata } from "next";
 
+
+export const metadata: Metadata = {
+  title: "Help | Circle",
+  description: "Find support and helpful information for using Circle.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 const Help = () => {
   return (
     <div className="space-y-6">

@@ -69,6 +69,10 @@ const createLikeOnPost = async (postId: string) => {
     };
   }
 
+  const likesCount = await prisma.postLike.count({
+    where: { postId },
+  });
+
   if (post?.accountId) {
     if (accountId !== post.accountId) {
       const notification: NOTIREQUEST = {
@@ -80,10 +84,6 @@ const createLikeOnPost = async (postId: string) => {
       };
       await createNotification(notification);
     }
-    const likesCount = await prisma.postLike.count({
-      where: { postId },
-    });
-
     await publishToFollowers(post.accountId, TypePublishSocket.POST, {
       postEvent: {
         action: "liked",
@@ -95,7 +95,7 @@ const createLikeOnPost = async (postId: string) => {
     });
   }
 
-  return res;
+  return { ...res, likesCount };
 };
 
 export { createLikeOnPost };

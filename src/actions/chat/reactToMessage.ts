@@ -2,6 +2,7 @@
 
 import { MessageReactionType } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
+import { getIo } from "@/lib/socket/getIo";
 import { revalidatePath } from "next/cache";
 
 const reactToMessage = async ({
@@ -27,21 +28,15 @@ const reactToMessage = async ({
     };
   }
 
-  if (!type) {
+  if (!type || !Object.values(MessageReactionType).includes(type)) {
     return {
       success: false,
-      message: "Reaction type is required",
+      message: "Invalid reaction type",
     };
   }
 
-  // ============================================================
-  // 1. Get message
-  // ============================================================
-
   const message = await prisma.message.findUnique({
-    where: {
-      id: messageId,
-    },
+    where: { id: messageId },
     select: {
       id: true,
       conversationId: true,
@@ -54,10 +49,6 @@ const reactToMessage = async ({
       message: "Message not found",
     };
   }
-
-  // ============================================================
-  // 2. Check participant
-  // ============================================================
 
   const participant = await prisma.conversationParticipant.findUnique({
     where: {
@@ -78,10 +69,6 @@ const reactToMessage = async ({
     };
   }
 
-  // ============================================================
-  // 3. Check this exact reaction
-  // ============================================================
-
   const existingReaction = await prisma.messageReaction.findUnique({
     where: {
       accountId_messageId: {
@@ -91,53 +78,55 @@ const reactToMessage = async ({
     },
   });
 
-  // ============================================================
-  // 4. Toggle reaction
-  // ============================================================
+  let active: boolean;
+  let reactionType: MessageReactionType | null;
 
-  if (existingReaction) {
+  if (existingReaction?.type === type) {
     await prisma.messageReaction.delete({
       where: {
         id: existingReaction.id,
       },
     });
 
-    return {
-      success: true,
-      active: false,
-      type,
-    };
-  }
-
-  // ============================================================
-  // 5. Create reaction
-  // ============================================================
-
-  const reaction = await prisma.messageReaction.upsert({
-    where: {
-      accountId_messageId: {
+    active = false;
+    reactionType = null;
+  } else {
+    const reaction = await prisma.messageReaction.upsert({
+      where: {
+        accountId_messageId: {
+          accountId,
+          messageId,
+        },
+      },
+      create: {
         accountId,
         messageId,
+        type,
       },
-    },
+      update: {
+        type,
+      },
+    });
 
-    create: {
-      accountId,
-      messageId,
-      type,
-    },
+    active = true;
+    reactionType = reaction.type;
+  }
 
-    update: {
-      type,
-    },
+  const io = getIo();
+
+  io.to(`conversation:${message.conversationId}`).emit("publish:like-message", {
+    messageId: message.id,
+    accountId,
+    reaction: reactionType,
+    isLiked: active,
   });
 
   revalidatePath(`/messages/${message.conversationId}`);
 
   return {
     success: true,
-    active: true,
-    type: reaction.type,
+    active,
+    type: reactionType,
   };
 };
 

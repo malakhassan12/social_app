@@ -1,4 +1,7 @@
-import { NotificationType } from "@/generated/prisma/enums";
+import {
+  FollowRequestStatus,
+  NotificationType,
+} from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { getIo } from "@/lib/socket/getIo";
 import { TypePublishSocket } from "@/lib/socket/socket.types";
@@ -11,13 +14,25 @@ const publishToFollowers = async (
   data?: {
     post?: Post;
     postEvent?: {
-      action: "created" | "updated" | "deleted" | "liked";
-      postId: string;
+      action:
+        | "created"
+        | "updated"
+        | "deleted"
+        | "liked"
+        | "shared"
+        | "disable-comments:posts"
+        | "disable-comments:post";
+      postId?: string;
       accountId?: string;
       liked?: boolean;
       likesCount?: number;
+      shared?: boolean;
+      shareId?: string;
+      sharedCount?: number;
+      isOpenComments?: boolean;
     };
     comment?: Partial<Comment>;
+    commentsCount?: number;
     commentLike?: {
       commentId: string;
       accountId: string;
@@ -43,9 +58,42 @@ const publishToFollowers = async (
   // Owner
   receiverIds.add(accountId);
 
+  if (data?.postEvent?.accountId) {
+    receiverIds.add(data.postEvent.accountId);
+  }
+
+  if (data?.comment?.accountId) {
+    receiverIds.add(data.comment.accountId);
+  }
+
   // Followers
   for (const follower of followers) {
     receiverIds.add(follower.followerId);
+  }
+
+  if (
+    type === TypePublishSocket.POST &&
+    (data?.postEvent?.action === "disable-comments:post" ||
+      data?.postEvent?.action === "disable-comments:posts")
+  ) {
+    const friendships = await prisma.followRequest.findMany({
+      where: {
+        status: FollowRequestStatus.ACCEPTED,
+        OR: [{ requesterId: accountId }, { receiverId: accountId }],
+      },
+      select: {
+        requesterId: true,
+        receiverId: true,
+      },
+    });
+
+    for (const friendship of friendships) {
+      receiverIds.add(
+        friendship.requesterId === accountId
+          ? friendship.receiverId
+          : friendship.requesterId,
+      );
+    }
   }
 
   if (type === TypePublishSocket.COMMENT_LIKE && data?.commentLike) {
@@ -99,7 +147,10 @@ const publishToFollowers = async (
     }
 
     if (type === TypePublishSocket.COMMENT) {
-      io.to(`account:${receiverId}`).emit("publish:comment", data?.comment);
+      io.to(`account:${receiverId}`).emit("publish:comment", {
+        ...data?.comment,
+        commentsCount: data?.commentsCount,
+      });
     }
 
     if (type === TypePublishSocket.COMMENT_LIKE && data?.commentLike) {

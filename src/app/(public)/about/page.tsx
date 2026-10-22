@@ -1,5 +1,17 @@
 import BackBtn from "@/components/Buttons/BackBtn";
 import { User, MapPin, Calendar, Briefcase, Link as LinkIcon } from "lucide-react";
+import { Metadata } from "next";
+
+
+
+export const metadata: Metadata = {
+  title: "About | Circle",
+  description: "Learn about Circle, a social platform for sharing and connecting.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 const About = () => {
   // Mock user data - replace with actual data
