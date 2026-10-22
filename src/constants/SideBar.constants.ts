@@ -1,17 +1,21 @@
 // data/sidebar-data.ts
 import { SIDEBAR } from "@/types/SideBar.types";
 
-
 export const sidebarData: SIDEBAR[] = [
   {
     title: "Home",
-    path: "/",
+    path: "/home",
     icon: "Home",
   },
   {
     title: "Explore",
     path: "/explore",
     icon: "Compass",
+  },
+  {
+    title: "Suggestions",
+    path: "/suggestions",
+    icon: "UserRoundPlus",
   },
   {
     title: "Notifications",

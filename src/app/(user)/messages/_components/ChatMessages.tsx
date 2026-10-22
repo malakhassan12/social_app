@@ -1,15 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import MessagesList from "./MessagesList";
 import type { MessageWithSender } from "./MessageItem";
-import useChatMessagesRealTime from "../../../../hooks/useChatMessagesRealTime";
+import useChatMessagesRealTime, {
+  DeleteMessageEvent,
+  MessageReactionEvent,
+} from "../../../../hooks/useChatMessagesRealTime";
 
 type Props = {
   initialMessages: MessageWithSender[];
@@ -20,12 +18,7 @@ type Props = {
 };
 
 export default function ChatMessages(props: Props) {
-  return (
-    <ChatMessagesContent
-      key={props.conversationId}
-      {...props}
-    />
-  );
+  return <ChatMessagesContent key={props.conversationId} {...props} />;
 }
 
 function ChatMessagesContent({
@@ -38,20 +31,15 @@ function ChatMessagesContent({
   const [messages, setMessages] =
     useState<MessageWithSender[]>(initialMessages);
 
+  const [hasMoreOlderMessages, setHasMoreOlderMessages] = useState(
+    initialHasMoreOlderMessages,
+  );
 
-    console.log("Fro client" , messages)
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
 
-  const [hasMoreOlderMessages, setHasMoreOlderMessages] =
-    useState(initialHasMoreOlderMessages);
+  const [isAtBottom, setIsAtBottom] = useState(true);
 
-  const [isLoadingOlder, setIsLoadingOlder] =
-    useState(false);
-
-  const [isAtBottom, setIsAtBottom] =
-    useState(true);
-
-  const [newMessagesCount, setNewMessagesCount] =
-    useState(0);
+  const [newMessagesCount, setNewMessagesCount] = useState(0);
 
   const isAtBottomRef = useRef(true);
 
@@ -59,11 +47,10 @@ function ChatMessagesContent({
    * IMPORTANT:
    * Sync server data -> client state
    */
-  const [previousInitialData, setPreviousInitialData] =
-    useState({
-      initialMessages,
-      initialHasMoreOlderMessages,
-    });
+  const [previousInitialData, setPreviousInitialData] = useState({
+    initialMessages,
+    initialHasMoreOlderMessages,
+  });
 
   if (
     previousInitialData.initialMessages !== initialMessages ||
@@ -85,10 +72,7 @@ function ChatMessagesContent({
   }, [isAtBottom]);
 
   const loadOlderMessages = useCallback(async () => {
-    if (
-      isLoadingOlder ||
-      !hasMoreOlderMessages
-    ) {
+    if (isLoadingOlder || !hasMoreOlderMessages) {
       return 0;
     }
 
@@ -103,107 +87,71 @@ function ChatMessagesContent({
     try {
       const result = await fetch(
         `/api/messages/${conversationId}?before=${encodeURIComponent(
-          new Date(
-            oldestMessage.createdAt,
-          ).toISOString(),
+          new Date(oldestMessage.createdAt).toISOString(),
         )}&limit=10`,
       );
 
       if (!result.ok) {
-        throw new Error(
-          "Failed to load older messages",
-        );
+        throw new Error("Failed to load older messages");
       }
 
       const data = await result.json();
 
-      const olderMessages =
-        data.messages as MessageWithSender[];
+      const olderMessages = data.messages as MessageWithSender[];
 
       if (olderMessages.length > 0) {
-        setMessages((current) => [
-          ...olderMessages,
-          ...current,
-        ]);
+        setMessages((current) => [...olderMessages, ...current]);
       }
 
       setHasMoreOlderMessages(data.hasMore);
 
       return olderMessages.length;
     } catch (error) {
-      console.error(
-        "loadOlderMessages error:",
-        error,
-      );
+      console.error("loadOlderMessages error:", error);
 
       return 0;
     } finally {
       setIsLoadingOlder(false);
     }
-  }, [
-    conversationId,
-    messages,
-    isLoadingOlder,
-    hasMoreOlderMessages,
-  ]);
+  }, [conversationId, messages, isLoadingOlder, hasMoreOlderMessages]);
 
   const handleNewMessage = useCallback(
     (message: MessageWithSender) => {
       setMessages((current) => {
-        if (
-          current.some(
-            (item) => item.id === message.id,
-          )
-        ) {
+        if (current.some((item) => item.id === message.id)) {
           return current;
         }
 
         return [...current, message];
       });
 
-      if (
-        !isAtBottomRef.current &&
-        message.senderId !== currentAccountId
-      ) {
-        setNewMessagesCount(
-          (count) => count + 1,
-        );
+      if (!isAtBottomRef.current && message.senderId !== currentAccountId) {
+        setNewMessagesCount((count) => count + 1);
       }
     },
     [currentAccountId],
   );
 
-  const handleAtBottomStateChange = useCallback(
-    (atBottom: boolean) => {
-      isAtBottomRef.current = atBottom;
-      setIsAtBottom(atBottom);
+  const handleAtBottomStateChange = useCallback((atBottom: boolean) => {
+    isAtBottomRef.current = atBottom;
+    setIsAtBottom(atBottom);
 
-      if (atBottom) {
-        setNewMessagesCount(0);
-      }
-    },
-    [],
-  );
+    if (atBottom) {
+      setNewMessagesCount(0);
+    }
+  }, []);
 
   const handleMessageRead = useCallback(
-    ({
-      messageId,
-      accountId,
-    }: {
-      messageId: string;
-      accountId: string;
-    }) => {
+    ({ messageId, accountId }: { messageId: string; accountId: string }) => {
       setMessages((currentMessages) =>
         currentMessages.map((message) => {
           if (message.id !== messageId) {
             return message;
           }
 
-          const alreadyExists =
-            message.messageReads?.some(
-              (read) =>
-                read.accountId === accountId,
-            );
+          const alreadyExists = message.messageReads?.some(
+            (read) => read.accountId === accountId,
+          );
 
           if (alreadyExists) {
             return message;
@@ -224,10 +172,69 @@ function ChatMessagesContent({
     [],
   );
 
+  const handleReact = useCallback((data: MessageReactionEvent) => {
+    setMessages((current) =>
+      current.map((message) => {
+        if (message.id !== data.messageId) {
+          return message;
+        }
+
+        const existingReactions = message.messageReactions ?? [];
+
+        // Remove this account's previous reaction.
+        const otherReactions = existingReactions.filter(
+          (reaction) => reaction.accountId !== data.accountId,
+        );
+
+        // If a reaction is still active, add its latest state.
+        const messageReactions =
+          data.isLiked && data.reaction
+            ? [
+                ...otherReactions,
+                {
+                  accountId: data.accountId,
+                  type: data.reaction,
+                },
+              ]
+            : otherReactions;
+
+        return {
+          ...message,
+          messageReactions,
+        };
+      }),
+    );
+  }, []);
+
+  const handleUpdateMessage = useCallback(
+    (updatedMessage: MessageWithSender) => {
+      setMessages((current) =>
+        current.map((message) =>
+          message.id === updatedMessage.id
+            ? { ...message, content: updatedMessage.content }
+            : message,
+        ),
+      );
+    },
+    [],
+  );
+
+  const handleDeleteMessage = useCallback(
+    ({ messageId }: DeleteMessageEvent) => {
+      setMessages((current) =>
+        current.filter((message) => message.id !== messageId),
+      );
+    },
+    [],
+  );
+
   useChatMessagesRealTime({
     conversationId,
     onNewMessage: handleNewMessage,
     onMessageRead: handleMessageRead,
+    onMessageReaction: handleReact,
+    onUpdateMessage: handleUpdateMessage,
+    onDeleteMessage: handleDeleteMessage,
   });
 
   return (
@@ -241,9 +248,7 @@ function ChatMessagesContent({
       isLoadingOlder={isLoadingOlder}
       newMessagesCount={newMessagesCount}
       isAtBottom={isAtBottom}
-      onAtBottomStateChange={
-        handleAtBottomStateChange
-      }
+      onAtBottomStateChange={handleAtBottomStateChange}
     />
   );
 }

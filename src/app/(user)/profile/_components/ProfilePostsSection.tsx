@@ -16,7 +16,6 @@ const ProfilePostsSection: FC<{
   const {
     posts,
     currentPage,
-
     hasNextPage,
   } = await getProfilePosts(profileId, pagePosts as string | number);
 
@@ -36,6 +35,8 @@ const ProfilePostsSection: FC<{
         currentPage={currentPage}
         hasNextPage={hasNextPage}
         account={account as unknown as Account}
+        profileMode
+        profileId={profileId}
       />
     </section>
   );

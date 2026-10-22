@@ -1,12 +1,10 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
-
-const updateCommentsSetting = async (
-  accountId: string,
-  formData: FormData,
-) => {
+const updateCommentsSetting = async (accountId: string, formData: FormData) => {
   try {
     // =====================================================
     // Validation
@@ -19,30 +17,39 @@ const updateCommentsSetting = async (
       };
     }
 
-
     // =====================================================
     // Get FormData
     // =====================================================
 
-    const rawAllowAllComments =
-      formData.get("allowAllComments");
+    const rawAllowAllComments = formData.get("allowAllComments");
 
-    const allowAllComments =
-      rawAllowAllComments === "true";
+    const allowAllComments = rawAllowAllComments === "on";
+
+    console.log(
+      "Form data open comments: ",
+      rawAllowAllComments,
+      typeof rawAllowAllComments,
+    );
+
+    /*
+    
+    Form data open comments:  null object
+    Form data open comments:  on string
+
+    */
 
     // =====================================================
     // Get current account
     // =====================================================
 
-    const account =
-      await prisma.account.findUnique({
-        where: {
-          id: accountId,
-        },
-        select: {
-          id: true,
-        },
-      });
+    const account = await prisma.account.findUnique({
+      where: {
+        id: accountId,
+      },
+      select: {
+        id: true,
+      },
+    });
 
     if (!account) {
       return {
@@ -55,18 +62,35 @@ const updateCommentsSetting = async (
     // Update Account
     // =====================================================
 
-      await prisma.account.update({
-        where: {
-          id: accountId,
-        },
-        data: {
-          isOpenComments: allowAllComments,
-        },
-        select: {
-          id: true,
-          isOpenComments: true,
-        },
-      });
+    await prisma.account.update({
+      where: {
+        id: accountId,
+      },
+      data: {
+        isOpenComments: allowAllComments,
+      },
+      select: {
+        id: true,
+        isOpenComments: true,
+      },
+    });
+
+    await prisma.post.updateMany({
+      where: {
+        accountId,
+      },
+      data: {
+        isOpenComments: allowAllComments,
+      },
+    });
+
+    await publishToFollowers(accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "disable-comments:posts",
+        accountId,
+        isOpenComments: allowAllComments,
+      },
+    });
 
     // =====================================================
     // Result
@@ -79,15 +103,11 @@ const updateCommentsSetting = async (
         : "Comments are now disabled on all posts",
     };
   } catch (error) {
-    console.error(
-      "updateCommentsSetting error:",
-      error,
-    );
+    console.error("updateCommentsSetting error:", error);
 
     return {
       success: false,
-      message:
-        "Failed to update comments setting",
+      message: "Failed to update comments setting",
     };
   }
 };

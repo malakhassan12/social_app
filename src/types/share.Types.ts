@@ -1,6 +1,7 @@
 export type ShareResponse = {
   success: boolean;
   shared: boolean;
+  sharedCount?: number;
   errors?: { message: string };
 };
 import { Account } from "./account.Types";

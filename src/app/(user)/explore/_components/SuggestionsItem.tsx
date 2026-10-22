@@ -37,7 +37,6 @@ const SuggestionItem: FC<SuggestionItemProps> = ({
   requestStatus,
   rightPanel,
 }) => {
-  // Get status label and icon
   const getStatusInfo = () => {
     switch (requestStatus) {
       case FollowRequestEnum.PENDING:
@@ -45,28 +44,28 @@ const SuggestionItem: FC<SuggestionItemProps> = ({
           label: "Pending",
           icon: <Clock className="h-3 w-3" />,
           color:
-            "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800",
+            "border-amber-400/30 bg-amber-400/10 text-amber-700 dark:border-amber-300/25 dark:bg-amber-300/[0.08] dark:text-amber-300",
         };
       case FollowRequestEnum.ACCEPTED:
         return {
           label: "Friends",
           icon: <Check className="h-3 w-3" />,
           color:
-            "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800",
+            "border-emerald-400/30 bg-emerald-400/10 text-emerald-700 dark:border-emerald-300/25 dark:bg-emerald-300/[0.08] dark:text-emerald-300",
         };
       case FollowRequestEnum.NOT_EXIST:
         return {
           label: "Not Connected",
           icon: <UserPlus className="h-3 w-3" />,
           color:
-            "bg-gray-100 text-gray-600 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700",
+            "border-black/[0.08] bg-black/[0.04] text-[#1a1e2b]/60 dark:border-white/[0.08] dark:bg-white/[0.05] dark:text-[#f4ede4]/60",
         };
       default:
         return {
           label: "Add Friend",
           icon: <UserPlus className="h-3 w-3" />,
           color:
-            "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+            "border-rose-400/30 bg-rose-400/10 text-rose-700 dark:border-rose-300/25 dark:bg-rose-300/[0.08] dark:text-rose-300",
         };
     }
   };
@@ -77,33 +76,30 @@ const SuggestionItem: FC<SuggestionItemProps> = ({
   return (
     <div
       className={`
-        group relative flex transition-all duration-200
+        group relative flex w-full transition-all duration-300
+        rounded-2xl border border-black/[0.06] bg-white
+        shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+        hover:-translate-y-0.5 hover:border-rose-400/30
+        hover:shadow-[0_12px_32px_-12px_rgba(251,113,133,0.35)]
+        dark:border-white/[0.06] dark:bg-[#0f0d18]
+        dark:hover:border-rose-300/25
+        dark:hover:shadow-[0_12px_32px_-12px_rgba(251,113,133,0.5)]
         ${
           rightPanel
-            ? "flex-col items-center text-center p-5 sm:p-6"
-            : "flex-col items-center flex-wrap p-4 sm:p-5 gap-3"
+            ? "flex-col items-center gap-3 p-5 text-center sm:p-6"
+            : "flex-col items-center gap-3 p-4 sm:flex-row sm:gap-4 sm:p-5 sm:text-left"
         }
-        rounded-2xl bg-white dark:bg-gray-900/80 
-        border border-gray-200/80 dark:border-gray-700/80 
-        hover:border-purple-300 dark:hover:border-purple-600 
-        hover:shadow-xl hover:shadow-purple-500/10 
-        hover:-translate-y-1 
-        hover:bg-linear-to-br hover:from-purple-50/40 hover:to-transparent 
-        dark:hover:from-purple-900/15 dark:hover:to-transparent
-        ${rightPanel ? "hover:scale-[1.02]" : ""}
       `}
     >
-      {/* Status Badge - Top Right */}
+      {/* Status Badge */}
       {showStatusBadge && (
         <div
-          className={`absolute top-3 right-3 ${rightPanel ? "top-4 right-4" : ""}`}
+          className={`absolute ${
+            rightPanel ? "right-4 top-4" : "right-3 top-3 sm:right-4 sm:top-4"
+          }`}
         >
           <span
-            className={`
-            text-[10px] sm:text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1.5
-            border ${statusInfo.color}
-            shadow-sm
-          `}
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-medium shadow-sm sm:text-xs ${statusInfo.color}`}
           >
             {statusInfo.icon}
             {statusInfo.label}
@@ -111,75 +107,86 @@ const SuggestionItem: FC<SuggestionItemProps> = ({
         </div>
       )}
 
-      {/* More Options - Top Left */}
+      {/* More Options */}
       <div
-        className={`absolute top-3 left-3 ${rightPanel ? "top-4 left-4" : ""}`}
+        className={`absolute ${
+          rightPanel ? "left-4 top-4" : "left-3 top-3 sm:left-4 sm:top-4"
+        }`}
       >
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-7 w-7 rounded-full text-[#1a1e2b]/45 opacity-0 transition-all group-hover:opacity-100 hover:bg-rose-400/10 hover:text-rose-600 focus-visible:opacity-100 dark:text-[#f4ede4]/45 dark:hover:bg-rose-300/10 dark:hover:text-rose-300"
             >
-              <MoreHorizontal className="h-4 w-4 text-gray-400" />
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
-            <DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href={`/profile/${suggestion.id}`}>View Profile</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>Message</DropdownMenuItem>
-            <DropdownMenuItem className="text-red-600">Report</DropdownMenuItem>
+            <DropdownMenuItem className="text-red-600 dark:text-red-400">
+              Report
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      {/* Avatar Section */}
-      <div className={`relative ${rightPanel ? "mt-2" : "hrink-0"}`}>
+      {/* Avatar */}
+      <div className="relative shrink-0">
         <div className="relative">
           <ProfileAvatar
             image={suggestion.image}
             name={suggestion.username || "User"}
           />
-          {/* Online Status Indicator */}
-          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-gray-900 shadow-sm">
+          <div className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-400 shadow-sm dark:border-[#0f0d18]">
             <span className="sr-only">Online</span>
           </div>
         </div>
       </div>
 
       {/* User Info */}
-      <div className={`flex-1 min-w-0 ${rightPanel ? "mt-3 w-full" : ""}`}>
-        <div className="flex items-center gap-2">
-          <p className="font-semibold text-gray-900 dark:text-white truncate text-sm sm:text-base">
-            {suggestion.username || "Unknown User"}
-          </p>
-        </div>
+      <div
+        className={`min-w-0 flex-1 ${
+          rightPanel ? "w-full text-center" : "w-full sm:text-left"
+        }`}
+      >
+        <p className="truncate text-sm font-semibold text-[#1a1e2b] sm:text-base dark:text-[#f4ede4]">
+          {suggestion.username || "Unknown User"}
+        </p>
 
-        {/* Email */}
-        <p className="text-xs text-gray-400 dark:text-gray-500 truncate flex items-center gap-1.5">
+        <p
+          className={`mt-0.5 flex items-center gap-1.5 truncate text-xs text-[#1a1e2b]/55 dark:text-[#f4ede4]/55 ${
+            rightPanel ? "justify-center" : "justify-center sm:justify-start"
+          }`}
+        >
           <Mail className="h-3 w-3 shrink-0" />
           <span className="truncate">{suggestion.email.email}</span>
         </p>
 
-        {/* Country with flag emoji - optional enhancement */}
         {suggestion.country && (
-          <div className="flex items-center gap-1.5 mt-0.5 text-gray-400 dark:text-gray-500">
+          <p
+            className={`mt-0.5 flex items-center gap-1.5 text-xs text-[#1a1e2b]/55 dark:text-[#f4ede4]/55 ${
+              rightPanel ? "justify-center" : "justify-center sm:justify-start"
+            }`}
+          >
             <MapPin className="h-3 w-3 shrink-0" />
-            <span className="text-xs truncate">{suggestion.country}</span>
-          </div>
+            <span className="truncate">{suggestion.country}</span>
+          </p>
         )}
       </div>
 
-      {/* Action Buttons */}
+      {/* Actions */}
       <div
         className={`
-          flex flex-wrap items-center gap-2
+          flex w-full flex-wrap items-center gap-2
           ${
             rightPanel
-              ? "w-full justify-center mt-4"
-              : "w-full justify-center sm:w-auto sm:justify-end sm:mt-0 ml-0 sm:ml-2"
+              ? "mt-2 justify-center"
+              : "mt-1 justify-center sm:mt-0 sm:w-auto sm:justify-end"
           }
         `}
       >

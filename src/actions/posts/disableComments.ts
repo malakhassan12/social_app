@@ -1,6 +1,8 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
+import publishToFollowers from "../socket/publish-to-followers";
 
 const disableComments = async (
   postId: string,
@@ -25,17 +27,16 @@ const disableComments = async (
     // 2. Get post
     // =====================================
 
-    const post =
-      await prisma.post.findFirst({
-        where: {
-          id: postId,
-        },
+    const post = await prisma.post.findFirst({
+      where: {
+        id: postId,
+      },
 
-        select: {
-          id: true,
-          accountId: true,
-        },
-      });
+      select: {
+        id: true,
+        accountId: true,
+      },
+    });
 
     if (!post) {
       return {
@@ -54,8 +55,7 @@ const disableComments = async (
       return {
         success: false,
         errors: {
-          message:
-            "You are not allowed to modify this post",
+          message: "You are not allowed to modify this post",
         },
       };
     }
@@ -64,8 +64,7 @@ const disableComments = async (
     // 4. Toggle comments
     // =====================================
 
-    const newIsOpenComments =
-      !isOpenComments;
+    const newIsOpenComments = !isOpenComments;
 
     await prisma.post.update({
       where: {
@@ -73,8 +72,15 @@ const disableComments = async (
       },
 
       data: {
-        isOpenComments:
-          newIsOpenComments,
+        isOpenComments: newIsOpenComments,
+      },
+    });
+
+    await publishToFollowers(accountId, TypePublishSocket.POST, {
+      postEvent: {
+        action: "disable-comments:post",
+        postId: post.id,
+        isOpenComments: newIsOpenComments,
       },
     });
 
@@ -84,23 +90,18 @@ const disableComments = async (
 
     return {
       success: true,
-      isOpenComments:
-        newIsOpenComments,
+      isOpenComments: newIsOpenComments,
       message: newIsOpenComments
         ? "Comments enabled successfully"
         : "Comments disabled successfully",
     };
   } catch (error) {
-    console.error(
-      "disableComments error:",
-      error,
-    );
+    console.error("disableComments error:", error);
 
     return {
       success: false,
       errors: {
-        message:
-          "Failed to update comments",
+        message: "Failed to update comments",
       },
     };
   }

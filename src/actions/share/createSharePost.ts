@@ -6,7 +6,8 @@ import { Post } from "@/types/post.Types";
 import { ShareResponse } from "@/types/share.Types";
 import { createNotification } from "../notification/createNotification";
 import { NotificationType } from "@/generated/prisma/enums";
-import { getIo } from "@/lib/socket/getIo";
+import publishToFollowers from "../socket/publish-to-followers";
+import { TypePublishSocket } from "@/lib/socket/socket.types";
 
 const createSharePost = async (post: Post) => {
   const accountId = await getAccountId();
@@ -16,6 +17,32 @@ const createSharePost = async (post: Post) => {
       success: false,
       errors: {
         message: "Unauthorized",
+      },
+    };
+  }
+
+  const postId = post.id;
+
+  const postExist = await prisma.post.findUnique({
+    where: {
+      id: postId,
+    },
+  });
+
+  if (!postExist) {
+    return {
+      success: false,
+      errors: {
+        message: "Post not exist",
+      },
+    };
+  }
+
+  if (post.isPrivate) {
+    return {
+      success: false,
+      errors: {
+        message: "Can't make share on private account",
       },
     };
   }
@@ -69,16 +96,28 @@ const createSharePost = async (post: Post) => {
       await createNotification(notification);
     }
   }
-  const io = getIo();
-
-  io.to(`account:${accountId}`).emit("publish:post", {
-    action: "shared",
-    postId: post.id,
-    shareId,
-    shared: res.shared,
+  const sharedCount = await prisma.share.count({
+    where: { postId },
   });
 
-  return res;
+  const postEvent = {
+    action: "shared" as const,
+    postId,
+    accountId,
+    shareId,
+    shared: res.shared,
+    sharedCount,
+  };
+
+  await publishToFollowers(accountId, TypePublishSocket.POST, { postEvent });
+
+  if (postExist.accountId !== accountId) {
+    await publishToFollowers(postExist.accountId, TypePublishSocket.POST, {
+      postEvent,
+    });
+  }
+
+  return { ...res, sharedCount };
 };
 
 export default createSharePost;

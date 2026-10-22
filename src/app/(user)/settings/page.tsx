@@ -1,4 +1,17 @@
+import { Metadata } from "next";
 import SettingTabs from "./_components/Tabs/SettingTabs";
+
+
+export const metadata: Metadata = {
+  title: "Settings | Circle",
+  description: "Your personalized Circle feed.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+
 
 const Page = () => {
   return (

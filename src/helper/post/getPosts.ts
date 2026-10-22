@@ -191,19 +191,24 @@
 
 // export default getPosts;
 
-
 "use server";
 
 import { FollowRequestStatus } from "@/generated/prisma/enums";
 import prisma from "@/lib/prisma";
 import { getAccountId } from "../account/getAccountId";
 
-const getPosts = async (
-  pageInput: string | number,
-  accountId?: string,
-) => {
+const getPosts = async (pageInput: string | number, accountId?: string) => {
   const finalAccountId = accountId ?? (await getAccountId());
   const limit = 10;
+  const parsedPage = Number(pageInput);
+
+  const currentPage =
+    Number.isFinite(parsedPage) && parsedPage > 0 ? Math.floor(parsedPage) : 1;
+
+  const offset = (currentPage - 1) * limit;
+
+  // We need enough records from each source to build the requested page.
+  const fetchLimit = offset + limit;
 
   if (!finalAccountId) {
     return {
@@ -254,9 +259,7 @@ const getPosts = async (
     }),
   ]);
 
-  const followingIds = followings.map(
-    (follow) => follow.followingId,
-  );
+  const followingIds = followings.map((follow) => follow.followingId);
 
   const friendIds = friendships.map((friendship) =>
     friendship.requesterId === finalAccountId
@@ -270,11 +273,7 @@ const getPosts = async (
    * -------------------------------------------------------
    */
 
-  const visibleAccountIds = [
-    finalAccountId,
-    ...friendIds,
-    ...followingIds,
-  ];
+  const visibleAccountIds = [finalAccountId, ...friendIds, ...followingIds];
 
   /*
    * -------------------------------------------------------
@@ -285,6 +284,7 @@ const getPosts = async (
   const [posts, shares] = await Promise.all([
     prisma.post.findMany({
       where: {
+        isRemoved: false,
         OR: [
           // My posts
           {
@@ -343,12 +343,15 @@ const getPosts = async (
 
         _count: {
           select: {
-            comments: true,
+            comments: { where: { isRemoved: false } },
             likes: true,
             shares: true,
           },
         },
       },
+
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: fetchLimit,
     }),
 
     /*
@@ -442,7 +445,7 @@ const getPosts = async (
 
             _count: {
               select: {
-                comments: true,
+                comments: { where: { isRemoved: false } },
                 likes: true,
                 shares: true,
               },
@@ -450,6 +453,9 @@ const getPosts = async (
           },
         },
       },
+
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: fetchLimit,
     }),
   ]);
 
@@ -482,9 +488,7 @@ const getPosts = async (
    */
 
   activities.sort(
-    (a, b) =>
-      new Date(b.createdAt).getTime() -
-      new Date(a.createdAt).getTime(),
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
   /*
@@ -496,12 +500,7 @@ const getPosts = async (
   const total = activities.length;
   const totalPages = Math.ceil(total / limit);
 
-  const offset = (page - 1) * limit;
-
-  const paginatedActivities = activities.slice(
-    offset,
-    offset + limit,
-  );
+  const paginatedActivities = activities.slice(offset, offset + limit);
 
   /*
    * -------------------------------------------------------
@@ -509,39 +508,34 @@ const getPosts = async (
    * -------------------------------------------------------
    */
 
-  const activitiesWithSocialState = paginatedActivities.map(
-    (activity) => {
-      const post =
-        activity.type === "POST"
-          ? activity.post
-          : activity.share.post;
+  const activitiesWithSocialState = paginatedActivities.map((activity) => {
+    const post = activity.type === "POST" ? activity.post : activity.share.post;
 
-      const postWithSocialState = {
-        ...post,
+    const postWithSocialState = {
+      ...post,
 
-        isLiked: post.likes.length > 0,
+      isLiked: post.likes.length > 0,
 
-        isShared: post.shares.length > 0,
+      isShared: post.shares.length > 0,
 
-        sharedCount: post._count.shares,
-      };
+      sharedCount: post._count.shares,
+    };
 
-      if (activity.type === "POST") {
-        return {
-          ...activity,
-          post: postWithSocialState,
-        };
-      }
-
+    if (activity.type === "POST") {
       return {
         ...activity,
-        share: {
-          ...activity.share,
-          post: postWithSocialState,
-        },
+        post: postWithSocialState,
       };
-    },
-  );
+    }
+
+    return {
+      ...activity,
+      share: {
+        ...activity.share,
+        post: postWithSocialState,
+      },
+    };
+  });
 
   return {
     posts: activitiesWithSocialState,

@@ -4,10 +4,11 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Sign-up Page for Circle Website",
+    absolute: "Sign Up | Circle",
   },
+  description:
+    "Create your Circle account to connect with people, share posts, and join the community.",
 };
-
 const Signup = () => {
   return (
     <div className="flex min-h-svh flex-col items-center justify-center  p-6 md:p-10">

@@ -33,11 +33,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     select: {
       desc: true,
+      isPrivate : false
     },
   });
 
+  if (!post) {
+    return {
+      title: "Post not found",
+      description: "The requested post could not be found.",
+      robots: {
+        index: false,
+        follow: false,
+      },
+    };
+  }
+
+  const description =
+    post.desc?.trim() || "View this post and discover more content.";
+
   return {
-    title: post?.desc ?? "Post details",
+    title:
+      description.length > 60 ? `${description.slice(0, 57)}...` : description,
+    description:
+      description.length > 160
+        ? `${description.slice(0, 157)}...`
+        : description,
   };
 }
 

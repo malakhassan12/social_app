@@ -9,8 +9,12 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Create post page",
+  description: "Your personalized Circle feed.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
-
 
 export default async function CreatePost() {
   return (
@@ -46,7 +50,7 @@ export default async function CreatePost() {
         {/* Scrollable Content x */}
         <ScrollArea className="h-100 w-full rounded-md">
           <div className="p-5 pt-3">
-            <CreatePostForm/>
+            <CreatePostForm />
           </div>
         </ScrollArea>
       </Card>

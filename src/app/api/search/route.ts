@@ -81,6 +81,7 @@ export async function GET(req: NextRequest) {
 
       prisma.post.findMany({
         where: {
+          isPrivate :false ,
           OR: [
             {
               desc: {

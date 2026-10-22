@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { getIo } from "@/lib/socket/getIo";
 import { revalidatePath } from "next/cache";
 
 const deleteMessage = async ({
@@ -55,6 +56,14 @@ const deleteMessage = async ({
     where: {
       id: messageId,
     },
+  });
+
+  const io = getIo();
+
+  io.to(`conversation:${message.conversationId}`).emit("publish:delete-message", {
+    messageId: message.id,
+    accountId,
+    
   });
 
   revalidatePath(`/messages/${conversationId}`);

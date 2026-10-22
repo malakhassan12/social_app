@@ -10,6 +10,16 @@ import SuggestionPagination from "./_components/SuggestionPagination";
 import { Account } from "@/types/account.Types";
 import { Suspense } from "react";
 import SuggestionsSkeleton from "@/components/Skelton/SuggestionsSkeleton";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Suggestions | Circle",
+  description: "Your personalized Circle feed.",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 const Page = ({
   searchParams,

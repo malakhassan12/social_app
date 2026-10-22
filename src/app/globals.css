@@ -47,91 +47,152 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --animate-aurora: aurora 8s ease-in-out infinite alternate;
+  @keyframes aurora {
+    0% {
+      background-position: 0% 50%;
+      transform: rotate(-5deg) scale(0.9);
+    }
+    25% {
+      background-position: 50% 100%;
+      transform: rotate(5deg) scale(1.1);
+    }
+    50% {
+      background-position: 100% 50%;
+      transform: rotate(-3deg) scale(0.95);
+    }
+    75% {
+      background-position: 50% 0%;
+      transform: rotate(3deg) scale(1.05);
+    }
+    100% {
+      background-position: 0% 50%;
+      transform: rotate(-5deg) scale(0.9);
+    }
+  }
+  --shadow-glow: 0 0 20px rgba(255, 204, 112, 0.7), 0 0 40px rgba(200, 80, 192, 0.5), 0 0 60px rgba(65, 88, 208, 0.3);
+  --shadow-glow2: 0 0 20px rgba(50, 255, 50, 0.7), 0 0 40px rgba(20, 200, 20, 0.5), 0 0 60px rgba(5, 150, 5, 0.3);
+  --blur-20: 20px;
+  --blur-25: 25px;
+  --brightness-150: 1.5
 }
 
-body {
-  /* background: var(--background);
-  color: var(--foreground); */
-}
-
+/* ─────────────────────────────────────────────
+   LIGHT — Warm curtain palette
+   ───────────────────────────────────────────── */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  /* Base surfaces */
+  --background: #fdf9f3;
+  --foreground: #1a1e2b;
+
+  --card: #ffffff;
+  --card-foreground: #1a1e2b;
+
+  --popover: #ffffff;
+  --popover-foreground: #1a1e2b;
+
+  /* Primary = warm rose/orange (matches the CTA gradient) */
+  --primary: #fb7185; /* rose-400 */
+  --primary-foreground: #1a1e2b;
+
+  /* Secondary = warm cream */
+  --secondary: #f5ece0;
+  --secondary-foreground: #1a1e2b;
+
+  /* Muted = soft cream */
+  --muted: #f1e8dc;
+  --muted-foreground: #6b6b74;
+
+  /* Accent = subtle warm tint */
+  --accent: #f5ece0;
+  --accent-foreground: #1a1e2b;
+
+  /* Destructive (unchanged, semantic) */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  /* Borders / inputs / ring */
+  --border: rgba(26, 30, 43, 0.08);
+  --input: rgba(26, 30, 43, 0.10);
+  --ring: #fb7185;
+
+  /* Charts — warm family */
+  --chart-1: #fb7185; /* rose */
+  --chart-2: #fb923c; /* orange */
+  --chart-3: #fcd34d; /* amber */
+  --chart-4: #34d399; /* emerald */
+  --chart-5: #a78bfa; /* violet */
+
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Sidebar (used by shadcn) */
+  --sidebar: #fdf9f3;
+  --sidebar-foreground: #1a1e2b;
+  --sidebar-primary: #fb7185;
+  --sidebar-primary-foreground: #1a1e2b;
+  --sidebar-accent: #f5ece0;
+  --sidebar-accent-foreground: #1a1e2b;
+  --sidebar-border: rgba(26, 30, 43, 0.08);
+  --sidebar-ring: #fb7185;
 }
+
+/* ─────────────────────────────────────────────
+   DARK — Curtain theatre palette
+   ───────────────────────────────────────────── */
 .dark {
-  --background: #1a1a2e;
-  --foreground: #ffffff;
-  
-  --card: #1a1a2e;
-  --card-foreground: #ffffff;
-  
-  --popover: #1a1a2e;
-  --popover-foreground: #ffffff;
-  
-  --primary: #4ade80;
-  --primary-foreground: #1a1a2e;
-  
-  --secondary: #2d2d4a;
-  --secondary-foreground: #ffffff;
-  
-  --muted: #2d2d4a;
-  --muted-foreground: #a0aec0;
-  
-  --accent: #2d2d4a;
-  --accent-foreground: #ffffff;
-  
+  /* Base surfaces */
+  --background: #0b0a12;
+  --foreground: #f4ede4;
+
+  --card: #0f0d18;
+  --card-foreground: #f4ede4;
+
+  --popover: #0f0d18;
+  --popover-foreground: #f4ede4;
+
+  /* Primary = warm rose (lighter shade for dark bg) */
+  --primary: #fda4af; /* rose-300 */
+  --primary-foreground: #0b0a12;
+
+  /* Secondary = warm deep plum */
+  --secondary: #1a1726;
+  --secondary-foreground: #f4ede4;
+
+  /* Muted = deep ink */
+  --muted: #171421;
+  --muted-foreground: #a3a0b0;
+
+  /* Accent = warm deep plum */
+  --accent: #1a1726;
+  --accent-foreground: #f4ede4;
+
+  /* Destructive (unchanged) */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: #4ade80;
-  
-  --chart-1: #4ade80;
-  --chart-2: #60a5fa;
-  --chart-3: #a78bfa;
-  --chart-4: #f472b6;
-  --chart-5: #fbbf24;
-  
-  --sidebar: #1a1a2e;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #4ade80;
-  --sidebar-primary-foreground: #1a1a2e;
-  --sidebar-accent: #2d2d4a;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
-  --sidebar-ring: #4ade80;
+
+  /* Borders / inputs / ring */
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.12);
+  --ring: #fda4af;
+
+  /* Charts — warm family */
+  --chart-1: #fda4af; /* rose-300 */
+  --chart-2: #fdba74; /* orange-300 */
+  --chart-3: #fde68a; /* amber-200 */
+  --chart-4: #6ee7b7; /* emerald-300 */
+  --chart-5: #c4b5fd; /* violet-300 */
+
+  /* Sidebar */
+  --sidebar: #0f0d18;
+  --sidebar-foreground: #f4ede4;
+  --sidebar-primary: #fda4af;
+  --sidebar-primary-foreground: #0b0a12;
+  --sidebar-accent: #1a1726;
+  --sidebar-accent-foreground: #f4ede4;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #fda4af;
 }
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

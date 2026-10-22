@@ -7,6 +7,11 @@ import RequestsSkeleton from "@/components/Skelton/requestsSkelton";
 
 export const metadata: Metadata = {
   title: "Explore page",
+  description: "Your personalized Circle feed.",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const Page = () => {
@@ -27,7 +32,7 @@ const Page = () => {
       {/* Suggested Friends */}
 
       <Suspense fallback={<SuggestionsSkeleton />}>
-        <Suggestions  />
+        <Suggestions />
       </Suspense>
     </div>
   );

@@ -1,5 +1,15 @@
 import { Shield, Lock, Eye, Database, Cookie } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Metadata } from "next";
+
+
+
+
+export const metadata: Metadata = {
+  title: "Privacy | Circle",
+  description:
+    "Read Circle's privacy policy to learn how information is handled when you use the platform.",
+};
 
 const Privacy = () => {
   const sections = [

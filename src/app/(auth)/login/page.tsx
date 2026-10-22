@@ -6,8 +6,10 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: {
-    absolute: "Login Page for Circle Website",
+    absolute: "Login | Circle",
   },
+  description:
+    "Log in to your Circle account to connect with people, share posts, and stay in touch with your community.",
 };
 
 const GoogleIcon = () => (

@@ -26,7 +26,7 @@ const SelectAccountForm: FC<SelectAccountFormProp> = ({ account, userId }) => {
         toast.success("Selected Account successfully!", {
           position: "top-center",
         });
-        router.replace('/')
+        router.replace('/home')
       } else {
         toast.error("Failed to select Account", { position: "top-center" });
       }

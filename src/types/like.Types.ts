@@ -1,6 +1,7 @@
 export type LikeResponse = {
   success: boolean;
   liked: boolean;
+  likesCount?: number;
   errors?: { message: string };
 };
 

@@ -1,6 +1,14 @@
 import { Shield, FileText, Users, Lock,  } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Metadata } from "next";
 
+
+
+
+export const metadata: Metadata = {
+  title: "Terms | Circle",
+  description: "Review the terms that govern your use of Circle.",
+};
 const Terms = () => {
   const sections = [
     {

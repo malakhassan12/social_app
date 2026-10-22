@@ -26,12 +26,18 @@ const SocialBtnsClient = ({
 }) => (
   <div className="flex flex-col gap-4">
     <ButtonGroup>
-      <LikePostBtn post={post} isLike={isLiked} likedCount={likedCount} />
+      <LikePostBtn
+        post={post}
+        accountId={account.id}
+        isLike={isLiked}
+        likedCount={likedCount}
+      />
       {showComment &&
         ((post.isOpenComments && account.id !== post.accountId) ||
           account.id === post.accountId) && <CommentBtn post={post} />}
       <SharePostBtn
         post={post}
+        accountId={account.id}
         isShared={isShared}
         sharedCount={sharedCount}
       />
